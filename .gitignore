@@ -1,0 +1,8 @@
+*.iml
+/.idea/
+*~
+TAGS/
+target/
+
+!.gitignore
+!.gitkeep
