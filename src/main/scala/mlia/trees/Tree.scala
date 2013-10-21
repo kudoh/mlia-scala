@@ -1,8 +1,38 @@
 package mlia.trees
 
 import breeze.numerics._
+import scala.annotation.tailrec
 
-object Trees {
+case class Tree(nodes: Array[Node] = Array.empty) {
+
+  override def toString = s"Tree[${nodes.map(_.toString).mkString(",")}]"
+
+  def <<-(node: Node): Tree = Tree(nodes :+ node)
+
+  def classify(testVec: Vector[Int], featLabels: Array[String], cur: Array[Node] = nodes): String = search(testVec, featLabels, nodes)
+
+  @tailrec
+  private def search(testVec: Vector[Int], featLabels: Array[String], cur: Array[Node]): String = {
+    cur.find { node =>
+      node.isLeaf || testVec(featLabels.indexOf(node.key)).toString == node.value.toString
+    } match {
+      case None => "Fail to classify."
+      case Some(node) if node.isLeaf => node.value.toString
+      case Some(node) => println(node)
+        search(testVec, featLabels, node.children)
+    }
+  }
+}
+
+case class Node(key: String, value: Any, children: Array[Node] = Array.empty) {
+
+  val isLeaf = children.isEmpty
+
+  override def toString =
+    if (children.isEmpty) s" -> $value[Leaf]" else s"{$key : $value ${children.map(_.toString).mkString(",")}}"
+}
+
+object Tree {
 
   case class Row(data: Array[Int], label: String)
 
@@ -47,25 +77,22 @@ object Trees {
 
   private def remove(num: Int, list: Array[String]) = list diff Array(num)
 
-  case class Node(key: String, value: Any, children: Array[Node] = Array.empty) {
-    override def toString =
-      if (children.isEmpty) s" -> $value[Leaf]" else s"{$key : $value ${children.map(_.toString).mkString(",")}}"
-  }
+  def apply(dataSet: Array[Row], labels: Array[String]): Tree = createTree(dataSet, labels)
 
-  def createTree(dataSet: Array[Row], labels: Array[String],
-                 cur: Array[Node] = Array.empty, value: Int = -1): Array[Node] = {
-
+  private def createTree(dataSet: Array[Row], labels: Array[String], cur: Tree = Tree(), value: Int = -1): Tree = {
     val classList = dataSet.map(_.label)
-    if (classList.distinct.size == 1) cur :+ Node(value.toString, classList(0)) // all label is equal
-    else if (dataSet.head.data.isEmpty) cur :+ Node(value.toString, majorityCnt(classList)) // no more feature
+    if (classList.distinct.size == 1) cur <<- Node(value.toString, classList(0)) // all label is equal
+    else if (dataSet.head.data.isEmpty) cur <<- Node(value.toString, majorityCnt(classList)) // no more feature
     else {
       val bestFeat = chooseBestFeatureToSplit(dataSet).featureIdx
       val subLabels = remove(bestFeat, labels)
       val uniqueFeatValues = dataSet.map(_.data(bestFeat)).distinct
-      uniqueFeatValues.map { value =>
-        cur :+ Node(labels(bestFeat), value.toString,
-          createTree(splitDataSet(dataSet, bestFeat, value), subLabels, cur, value))
-      }.flatten
+      uniqueFeatValues.foldLeft(cur) { (state, value) =>
+        val subTree = createTree(splitDataSet(dataSet, bestFeat, value), subLabels, cur, value)
+        state <<- Node(labels(bestFeat), value.toString, subTree.nodes)
+      }
     }
   }
 }
+
+
