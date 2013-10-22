@@ -18,8 +18,7 @@ case class Tree(nodes: Array[Node] = Array.empty) {
     } match {
       case None => "Fail to classify."
       case Some(node) if node.isLeaf => node.value.toString
-      case Some(node) => println(node)
-        search(testVec, featLabels, node.children)
+      case Some(node) => search(testVec, featLabels, node.children)
     }
   }
 }
