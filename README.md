@@ -53,19 +53,42 @@ val myVocabList = createVocabList(listOPosts)
 val trainMat = DenseMatrix.zeros[Int](listOPosts.size, myVocabList.size)
 listOPosts.zipWithIndex.foreach(post => trainMat(post._2, ::) := setOfWords2Vec(myVocabList, post._1))
 println(trainMat)
-1  1  1  1  1  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ... (32 total)
-0  1  0  0  0  0  0  1  1  1  1  1  1  1  0  0  0  0  0  0  0  ...
-1  0  0  0  0  0  0  0  0  0  1  0  0  0  1  1  1  1  1  1  0  ...
-0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  1  ...
-...
+// 1  1  1  1  1  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ... (32 total)
+// 0  1  0  0  0  0  0  1  1  1  1  1  1  1  0  0  0  0  0  0  0  ...
+// 1  0  0  0  0  0  0  0  0  0  1  0  0  0  1  1  1  1  1  1  0  ...
+// 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  1  ...
+// ...
 
 // train by naive bayes
 val (p0v, p1v, pAb) = trainNB0(trainMat, listClasses)
 println(p0v.probability)
-// DenseVector(0.125, 0.041666666666666664, 0.041666666666666664, 0.041666666666666664, 0.041666666666666664, 0.041666666666666664, 0.041666666666666664, ...
 println(p1v.probability)
-// DenseVector(0.0, 0.10526315789473684, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05263157894736842, 0.05263157894736842, 0.05263157894736842, 0.05263157894736842, ...
 println(pAb) // 0.5
+
+// it has a risk get underflow and incorrect answer
+println(p0v.probability)
+// DenseVector(0.15384615384615385, 0.07692307692307693, 0.07692307692307693, 0.07692307692307693, 0.07692307692307693, ...)
+
+println(p1v.probability)
+// DenseVector(0.047619047619047616, 0.14285714285714285, 0.047619047619047616, 0.047619047619047616, 0.047619047619047616, ...)
+
+// it's stable to calculate on the computer! ,but it's not understanbable.
+println(p0v.logProbability)
+// DenseVector(-1.8718021769015913, -2.5649493574615367, -2.5649493574615367, -2.5649493574615367, -2.5649493574615367, ...)
+println(p1v.logProbability)
+// DenseVector(-3.044522437723423, -1.9459101490553135, -3.044522437723423, -3.044522437723423, -3.044522437723423, -3.044522437723423, ...)
+
+// total abusive probability(class == 1)
+println(pAb)
+
+val testEntry0 = Array("love", "my", "dalmation")
+val thisDoc0 = setOfWords2Vec(myVocabList, testEntry0)
+println(s"classified as: ${classifyNB(thisDoc0, p0v.logProbability, p1v.logProbability, pAb)}") // classified as "0"
+
+val testEntry1 = Array("stupid", "garbage")
+val thisDoc1 = setOfWords2Vec(myVocabList, testEntry1)
+println(s"classified as: ${classifyNB(thisDoc1, p0v.logProbability, p1v.logProbability, pAb)}")  // classified as "1"
+
 ```
 
 ## See also
