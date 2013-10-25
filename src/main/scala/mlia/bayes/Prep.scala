@@ -21,7 +21,7 @@ object Prep {
 
   def createVocabList(dataSet: Array[Array[String]]): Array[String] = dataSet.flatten.distinct
 
-  def setOfWords2Vec(vocabList: Array[String], inputSet: Array[String]) = {
+  def setOfWords2Vec(vocabList: Array[String], inputSet: Array[String]): DenseVector[Int] = {
     val returnVec: DenseVector[Int] = DenseVector.zeros[Int](vocabList.size)
     inputSet.foreach { word =>
       if (vocabList.contains(word)) returnVec(vocabList.indexOf(word)) = 1
