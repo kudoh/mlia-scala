@@ -1,9 +1,8 @@
 # Machine Learning in Action for Scala
-translate sample code from python to scala.
 
-http://www.amazon.co.jp/Machine-Learning-Action-Peter-Harrington/dp/1617290181
+<a target="_blank" href="http://www.amazon.co.jp/Machine-Learning-Action-Peter-Harrington/dp/1617290181/?_encoding=UTF8&camp=247&creative=1211&linkCode=ur2&tag=noborukudoh-22">Machine Learning in Action</a><img src="http://ir-jp.amazon-adsystem.com/e/ir?t=noborukudoh-22&l=ur2&o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />のサンプルコードはpythonで書かれていますが、それをscalaで書き直してみました。
 
-## k-Nearest Neighbors
+## Chapter2 : k-Nearest Neighbors(k近傍法)
 
 ```scala
 import breeze.linalg._
@@ -17,7 +16,7 @@ val inX = Vector[Double](13, 10) // vector which you want to know
 KNearestNeighbors.classify0(inX, ds, labels, k) // return "B"
 ```
 
-## Decision Trees
+## Chapter3 : Decision Trees(決定木)
 ```scala
 import mlia.trees.Tree._
 
@@ -37,9 +36,9 @@ tree.classify(Vector(1, 0), labels) // classified as "no"
 tree.classify(Vector(1, 1), labels) // classified as "yes"
 ```
 
-## Naive Bayes
+## Chapter4 : Naive Bayes(単純ベイズ)
 ```scala
-import breeze.linalg.DenseMatrix
+import breeze.linalg._
 import mlia.bayes.Prep._
 import mlia.bayes.NaiveBayes._
 
