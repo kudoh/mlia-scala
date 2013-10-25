@@ -23,10 +23,18 @@ object Prep {
 
   def setOfWords2Vec(vocabList: Array[String], inputSet: Array[String]): DenseVector[Int] = {
     val returnVec: DenseVector[Int] = DenseVector.zeros[Int](vocabList.size)
-    inputSet.foreach { word =>
-      if (vocabList.contains(word)) returnVec(vocabList.indexOf(word)) = 1
+    inputSet.foldLeft(returnVec) { (state, word) =>
+      if (vocabList.contains(word)) state(vocabList.indexOf(word)) = 1
       else println(s"the word: $word is not in my Vocabulary!")
+      state
     }
-    returnVec
+  }
+
+  def bagOfWords2VecMN(vocabList: Array[String], inputSet: Array[String]): DenseVector[Int] = {
+    inputSet.foldLeft(DenseVector.zeros[Int](vocabList.size)) { (state, word) =>
+      if (vocabList.contains(word)) state(vocabList.indexOf(word)) = state(vocabList.indexOf(word)) + 1
+      else println(s"the word: $word is not in my Vocabulary!")
+      state
+    }
   }
 }
