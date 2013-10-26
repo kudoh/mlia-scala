@@ -2,6 +2,7 @@ package mlia.lr
 
 import breeze.linalg._
 import breeze.numerics._
+import breeze.stats.distributions.Uniform
 
 object LogisticRegression {
 
@@ -31,6 +32,25 @@ object LogisticRegression {
       val h = sigmoid(dot(vec.toDenseMatrix, curWeight.toDenseMatrix).sum)
       val error = classLabels(i) - h
       curWeight :+ (vec :* (alpha * error): DenseVector[Double])
+    }
+  }
+
+  def stocGradAscent1(dataMatIn: List[Array[Double]], classLabels: Array[Int], numIter: Int = 150): DenseVector[Double] = {
+
+    Range(0, numIter).foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (outerState, i) =>
+      Range(0, dataMatIn.size).foldLeft((outerState, Range(0, dataMatIn.size).toArray)) {
+        case ((curWeights, indices), j) =>
+          val alpha = (4 / (1.0 + i + j)) + 0.01
+          val randIndex = Uniform(0, indices.size).sample().toInt
+          val vec = DenseVector(dataMatIn(randIndex))
+
+          val h = sigmoid((vec :* curWeights: DenseVector[Double]).sum)
+          val error = classLabels(randIndex) - h
+
+          val newWeights = (curWeights :+ (vec :* (alpha * error): DenseVector[Double]), indices.tail)
+          if (i % 10 == 0 && j % 100 == 0) println(s"$i, $j : $newWeights")
+          newWeights
+      }._1
     }
   }
 
