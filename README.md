@@ -77,14 +77,34 @@ println(p1v.logProbability)
 // total abusive probability(class == 1)
 println(pAb) // 0.5
 
-val testEntry0 = Array("love", "my", "dalmation")
-val thisDoc0 = setOfWords2Vec(myVocabList, testEntry0)
-println(s"classified as: ${classifyNB(thisDoc0, p0v.logProbability, p1v.logProbability, pAb)}") // classified as "0"
+// test bayes
+val thisDoc0 = setOfWords2Vec(myVocabList, Array("love", "my", "dalmation"))
+println(s"classified as: ${classifyNB(thisDoc0, p0v.logProbability, p1v.logProbability, pAb)}") 
+// => classified as "0"
 
-val testEntry1 = Array("stupid", "garbage")
-val thisDoc1 = setOfWords2Vec(myVocabList, testEntry1)
-println(s"classified as: ${classifyNB(thisDoc1, p0v.logProbability, p1v.logProbability, pAb)}")  // classified as "1"
+val thisDoc1 = setOfWords2Vec(myVocabList, Array("stupid", "garbage"))
+println(s"classified as: ${classifyNB(thisDoc1, p0v.logProbability, p1v.logProbability, pAb)}")
+// => classified as "1"
 
+```
+
+## Chapter5 : Logistic Regression(ロジスティック回帰)
+```scala
+import mlia.lr.LogisticRegression._
+import mlia.lr.Prep._
+
+val (dataMat, labelMat) = loadDataSet("/testSet.txt")
+// normal gradient ascent optimization. it's expensive to compute.
+gradAscent(dataMat, labelMat.toArray)
+// => DenseVector(4.124143489627893, 0.48007329288424455, -0.6168481970344017)
+
+// stochastic gradient ascent. it's faster than normal gradient ascent. but it often misclassify. 
+stocGradAscent0(dataMat, labelMat.toArray)
+// => DenseVector(1.0170200728876158, 0.859143479425245, -0.36579921045742)
+
+// improve stochastic gradient ascent.
+stocGradAscent1(dataMat, labelMat.toArray)
+// => DenseVector(13.940485981986548, 0.8592396791079943, -1.8701169404631004)
 ```
 
 ## See also
