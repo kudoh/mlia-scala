@@ -60,25 +60,22 @@ println(trainMat)
 
 // train by naive bayes
 val (p0v, p1v, pAb) = trainNB0(trainMat, listClasses)
-println(p0v.probability)
-println(p1v.probability)
-println(pAb) // 0.5
 
-// it has a risk get underflow and incorrect answer
+// it has a risk to get underflow and incorrect answer
 println(p0v.probability)
 // DenseVector(0.15384615384615385, 0.07692307692307693, 0.07692307692307693, 0.07692307692307693, 0.07692307692307693, ...)
 
 println(p1v.probability)
 // DenseVector(0.047619047619047616, 0.14285714285714285, 0.047619047619047616, 0.047619047619047616, 0.047619047619047616, ...)
 
-// it's stable to calculate on the computer! ,but it's not understanbable.
+// it's stable to calculate on the computer! ,but it's not understandable.
 println(p0v.logProbability)
 // DenseVector(-1.8718021769015913, -2.5649493574615367, -2.5649493574615367, -2.5649493574615367, -2.5649493574615367, ...)
 println(p1v.logProbability)
 // DenseVector(-3.044522437723423, -1.9459101490553135, -3.044522437723423, -3.044522437723423, -3.044522437723423, -3.044522437723423, ...)
 
 // total abusive probability(class == 1)
-println(pAb)
+println(pAb) // 0.5
 
 val testEntry0 = Array("love", "my", "dalmation")
 val thisDoc0 = setOfWords2Vec(myVocabList, testEntry0)
