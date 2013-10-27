@@ -19,39 +19,42 @@ object LogisticRegression {
       val h: DenseVector[Double] = sigmoid(dot(dataMatrix, curWeight))
       val error: DenseVector[Double] = labelMat :- h
       val weights = curWeight :+ dot(dataMatrix.t :* alpha, error.toDenseMatrix).toDenseMatrix
-      if (cycle % 100 == 0) println(s"$cycle : ${weights.toDenseVector.toString()}")
       weights
     }.toDenseVector
   }
 
   def stocGradAscent0(dataMatIn: List[Array[Double]], classLabels: Array[Int]): DenseVector[Double] = {
     val alpha = 0.01
-    dataMatIn.zipWithIndex.foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (curWeight, row) =>
-      val (value, i) = row
-      val vec = DenseVector(value)
+    dataMatIn.zipWithIndex.foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { case (curWeight, (row, i)) =>
+      val vec = DenseVector(row)
       val h = sigmoid(dot(vec.toDenseMatrix, curWeight.toDenseMatrix).sum)
       val error = classLabels(i) - h
       curWeight :+ (vec :* (alpha * error): DenseVector[Double])
     }
   }
 
+  def stocGradAscent1Iter500(dataMatIn: List[Array[Double]], classLabels: Array[Int]) = stocGradAscent1(dataMatIn, classLabels, 500)
+
   def stocGradAscent1(dataMatIn: List[Array[Double]], classLabels: Array[Int], numIter: Int = 150): DenseVector[Double] = {
 
     Range(0, numIter).foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (outerState, i) =>
-      Range(0, dataMatIn.size).foldLeft((outerState, Range(0, dataMatIn.size).toArray)) {
-        case ((curWeights, indices), j) =>
-          val alpha = (4 / (1.0 + i + j)) + 0.01
-          val randIndex = Uniform(0, indices.size).sample().toInt
-          val vec = DenseVector(dataMatIn(randIndex))
+      Range(0, dataMatIn.size).foldLeft((outerState, Range(0, dataMatIn.size).toArray)) { case ((curWeights, indices), j) =>
+        val alpha = (4 / (1.0 + i + j)) + 0.01
+        val randIndex = Uniform(0, indices.size).sample().toInt
+        val vec = DenseVector(dataMatIn(randIndex))
 
-          val h = sigmoid((vec :* curWeights: DenseVector[Double]).sum)
-          val error = classLabels(randIndex) - h
+        val h = sigmoid((vec :* curWeights: DenseVector[Double]).sum)
+        val error = classLabels(randIndex) - h
 
-          val newWeights = (curWeights :+ (vec :* (alpha * error): DenseVector[Double]), indices.tail)
-          if (i % 10 == 0 && j % 100 == 0) println(s"$i, $j : $newWeights")
-          newWeights
+        val newWeights = (curWeights :+ (vec :* (alpha * error): DenseVector[Double]), indices.tail)
+        newWeights
       }._1
     }
+  }
+
+  def classifyVector(inX: Vector[Double], weights: Vector[Double]) = {
+    val prob = sigmoid((inX :* weights).sum)
+    if (prob > 0.5) 1 else 0
   }
 
   private def dot(x: DenseMatrix[Double], y: DenseMatrix[Double]): DenseVector[Double] =
