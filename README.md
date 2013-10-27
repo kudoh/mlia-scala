@@ -105,6 +105,28 @@ stocGradAscent0(dataMat, labelMat.toArray)
 // improve stochastic gradient ascent.
 stocGradAscent1(dataMat, labelMat.toArray)
 // => DenseVector(13.940485981986548, 0.8592396791079943, -1.8701169404631004)
+
+// test each algorithm by error rate
+import mlia.lr.ColicTest._
+
+calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(gradAscent)
+// the error rate of this test is: 0.283582
+// the error rate of this test is: 0.283582
+// ...
+// after 10 iterations the average error rate is: 0.283582 <- well, not bad.
+
+calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscent0)
+// the error rate of this test is: 0.507463
+// the error rate of this test is: 0.507463
+// ...
+// after 10 iterations the average error rate is: 0.507463 <- bad performance...
+
+calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscent1Iter500)
+// the error rate of this test is: 0.014925
+// the error rate of this test is: 0.000000
+// ...
+// after 10 iterations the average error rate is: 0.026866 <- this performance is too good than the book for some reason.
+
 ```
 
 ## See also
