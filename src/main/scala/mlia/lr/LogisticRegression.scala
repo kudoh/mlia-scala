@@ -18,8 +18,7 @@ object LogisticRegression {
     Range(0, maxCycle).foldLeft(DenseMatrix.ones[Double](dataMatrix.cols, 1)) { (curWeight, cycle) =>
       val h = sigmoid(dot(dataMatrix, curWeight))
       val error = labelMat :- h
-      val weights = curWeight :+ dot(dataMatrix.t :* alpha, error.toDenseMatrix).toDenseMatrix
-      weights
+      curWeight :+ dot(dataMatrix.t :* alpha, error.toDenseMatrix).toDenseMatrix
     }.toDenseVector
   }
 
