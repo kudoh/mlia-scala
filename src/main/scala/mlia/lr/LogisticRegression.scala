@@ -16,8 +16,8 @@ object LogisticRegression {
     val labelMat = DenseVector(classLabels.map(_.toDouble))
 
     Range(0, maxCycle).foldLeft(DenseMatrix.ones[Double](dataMatrix.cols, 1)) { (curWeight, cycle) =>
-      val h: DenseVector[Double] = sigmoid(dot(dataMatrix, curWeight))
-      val error: DenseVector[Double] = labelMat :- h
+      val h = sigmoid(dot(dataMatrix, curWeight))
+      val error = labelMat :- h
       val weights = curWeight :+ dot(dataMatrix.t :* alpha, error.toDenseMatrix).toDenseMatrix
       weights
     }.toDenseVector
