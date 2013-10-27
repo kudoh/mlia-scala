@@ -28,7 +28,6 @@ object ColicTest {
     }
 
     // calculate error rate
-    println(s"$totalCount => $errorCount")
     val errorRate = errorCount.toDouble / totalCount
     println(f"the error rate of this test is: $errorRate%.6f")
     errorRate
