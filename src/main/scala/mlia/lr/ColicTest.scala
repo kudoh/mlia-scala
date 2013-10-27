@@ -34,7 +34,7 @@ object ColicTest {
     errorRate
   }
 
-  def calcMeanErrorRate(trainingFileName: String, testingFileName: String, numTests: Int = 10)
+  def calcErrorRateMean(trainingFileName: String, testingFileName: String, numTests: Int = 10)
                        (trainer: (List[Array[Double]], Array[Int]) => DenseVector[Double]) = {
     val errorSum = Range(0, numTests).foldLeft(0.0) { (curErrorSum, k) =>
       curErrorSum + calcErrorRate(trainingFileName, testingFileName)(trainer)
