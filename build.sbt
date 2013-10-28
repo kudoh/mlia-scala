@@ -6,7 +6,7 @@ scalaVersion := "2.10.2"
 
 resolvers ++= Seq(
             "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-            "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/releases/"
+            "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 )
 
 libraryDependencies += "org.scalanlp" % "breeze-math_2.10" % "0.5-SNAPSHOT"
