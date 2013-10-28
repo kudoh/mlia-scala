@@ -93,7 +93,7 @@ println(s"classified as: ${classifyNB(thisDoc1, p0v.logProbability, p1v.logProba
 import mlia.lr.LogisticRegression._
 import mlia.lr.Prep._
 
-val (dataMat, labelMat) = loadDataSet("/testSet.txt")
+val (dataMat, labelMat) = loadDataSet("/lr/testSet.txt")
 // normal gradient ascent optimization. it's expensive to compute.
 gradAscent(dataMat, labelMat.toArray)
 // => DenseVector(4.124143489627893, 0.48007329288424455, -0.6168481970344017)
@@ -128,6 +128,9 @@ calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscen
 // after 10 iterations the average error rate is: 0.026866 <- this performance is too good than the book for some reason.
 
 ```
+
+## Chapter6 : Support Vector Machine(サポートベクターマシーン)
+TODO
 
 ## See also
   [Data Fun!](http://data-fun.machine-learning.cloudbees.net)
