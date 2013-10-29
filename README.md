@@ -130,7 +130,16 @@ calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscen
 ```
 
 ## Chapter6 : Support Vector Machine(サポートベクターマシーン)
-TODO
+```scala
+import breeze.linalg._
+import mlia.svm.Prep._
+import mlia.svm.SMO._
+
+val (dataArr, labelArr) = loadDataSet("/svm/testSet.txt")
+val (alphas, b): (DenseMatrix[Double], Double) = smoSimple(dataArr.toArray, labelArr.toArray, 0.6, 0.001, 40)
+
+// TODO more code...
+```
 
 ## See also
   [Data Fun!](http://data-fun.machine-learning.cloudbees.net)
