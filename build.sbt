@@ -9,10 +9,8 @@ resolvers ++= Seq(
             "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 )
 
-libraryDependencies += "org.scalanlp" % "breeze-math_2.10" % "0.5-SNAPSHOT"
+libraryDependencies += "org.scalanlp" % "breeze_2.10" % "0.5.2"
 
-libraryDependencies += "org.scalanlp" % "breeze-viz_2.10" % "0.5" exclude("com.github.fommil.netlib", "all")
-
-libraryDependencies += "com.github.fommil.netlib" % "all" % "1.1"
+libraryDependencies += "org.scalanlp" % "breeze-viz_2.10" % "0.5.2" 
 
 org.scalastyle.sbt.ScalastylePlugin.Settings
