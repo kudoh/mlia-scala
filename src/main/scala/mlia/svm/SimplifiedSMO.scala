@@ -15,7 +15,7 @@ object SimplifiedSMO {
 
   def clipAlpha(aj: Double, h: Double, l: Double): Double = if (aj > h) h else if (aj < l) l else aj
 
-  def smoSimple(dataMatIn: Array[Array[Double]], classLabels: Array[Double], c: Double, toler: Double, maxIter: Int) = {
+  def smoSimple(dataMatIn: Array[Array[Double]], classLabels: Array[Double], c: Double, toler: Double, maxIter: Int): (DenseMatrix[Double], Double) = {
 
     val dataMat = DenseMatrix(dataMatIn: _*)
     val labelMat = DenseMatrix(classLabels).t
