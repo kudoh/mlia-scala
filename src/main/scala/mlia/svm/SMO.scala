@@ -4,13 +4,13 @@ import scala.annotation.tailrec
 import breeze.stats.distributions.Uniform
 import breeze.linalg._
 
-
 object SMO {
 
   def selectJrand(i: Int, m: Int): Int = {
+    val rand = Uniform(0, m)
     @tailrec
-    def step(i: Int, j: Int): Int = if (i != j) j else step(i, Uniform(0, m).sample().toInt)
-    step(i, Uniform(0, m).sample().toInt)
+    def step(i: Int, j: Int): Int = if (i != j) j else step(i, rand.sample().toInt)
+    step(i, rand.sample().toInt)
   }
 
   def clipAlpha(aj: Double, h: Double, l: Double): Double = if (aj > h) h else if (aj < l) l else aj
@@ -33,7 +33,6 @@ object SMO {
             val fXi: DenseMatrix[Double] = ((alphas :* labelMat).t * (dataMat * dataMat(i, ::).t): DenseMatrix[Double]) :+ b
             // error = fXi - real class
             val ei = fXi(0, 0) - labelMat(i, 0)
-
             if ((labelMat(i, 0) * ei < -toler && alphas(i, 0) < c) ||
               (labelMat(i, 0) * ei > toler && alphas(i, 0) > 0)) {
               // enter optimization
@@ -73,20 +72,8 @@ object SMO {
                   } else {
                     // update i by same amount as j in opposite direction
                     alphas(i, 0) += (labelMat(j, 0) * labelMat(i, 0) * (alphaJold - alphas(j, 0)))
-                    val b1_1 = b - ei - labelMat(i, 0) * (alphas(i, 0) - alphaIold)
-                    val b1_2: DenseMatrix[Double] = dataMat(i, ::) * dataMat(i, ::).t
-                    val b1_3 = labelMat(j, 0) * (alphas(j, 0) - alphaJold)
-                    val b1_4: DenseMatrix[Double] = dataMat(i, ::) * dataMat(j, ::).t
-                    val b1 = b1_1 * b1_2(0, 0) - b1_3 * b1_4(0, 0)
-                    println(s"b1 = $b1")
-
-                    val b2_1 = b - ej - labelMat(i, 0) * (alphas(i, 0) - alphaIold)
-                    val b2_2: DenseMatrix[Double] = dataMat(i, ::) * dataMat(j, ::).t
-                    val b2_3 = labelMat(j, 0) * (alphas(j, 0) - alphaJold)
-                    val b2_4: DenseMatrix[Double] = dataMat(j, ::) * dataMat(j, ::).t
-                    val b2 = b2_1 * b2_2(0, 0) - b2_3 * b2_4(0, 0)
-                    println(s"b2 = $b2")
-
+                    val b1 = b - ei - (labelMat(i, 0) * (alphas(i, 0) - alphaIold)) * (dataMat(i, ::) * dataMat(i, ::).t: DenseMatrix[Double])(0, 0) - (labelMat(j, 0) * (alphas(j, 0) - alphaJold)) * (dataMat(i, ::) * dataMat(j, ::).t: DenseMatrix[Double])(0, 0)
+                    val b2 = b - ej - (labelMat(i, 0) * (alphas(i, 0) - alphaIold)) * (dataMat(i, ::) * dataMat(j, ::).t: DenseMatrix[Double])(0, 0) - (labelMat(j, 0) * (alphas(j, 0) - alphaJold)) * (dataMat(j, ::) * dataMat(j, ::).t: DenseMatrix[Double])(0, 0)
                     val newB = {
                       if (alphas(i, 0) > 0 && alphas(i, 0) < c) b1
                       else if (alphas(j, 0) > 0 && alphas(j, 0) < c) b2
