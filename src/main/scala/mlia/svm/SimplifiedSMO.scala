@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 import breeze.stats.distributions.Uniform
 import breeze.linalg._
 
-object SMO {
+object SimplifiedSMO {
 
   def selectJrand(i: Int, m: Int): Int = {
     val rand = Uniform(0, m)
