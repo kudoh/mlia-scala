@@ -142,16 +142,6 @@ val (alphas, b): (DenseMatrix[Double], Double) = smoSimple(dataArr.toArray, labe
 // j not moving enough[0.0]
 // iter: 0 i:8, pairs changed 3
 // j not moving enough[0.0]
-// j not moving enough[0.0]
-// j not moving enough[0.0]
-// L == H[0.0]
-// j not moving enough[0.0]
-// j not moving enough[0.0]
-// L == H[0.0]
-// iter: 0 i:57, pairs changed 4
-// L == H[0.0]
-// iter: 0 i:72, pairs changed 5
-// L == H[0.0]
 // ...
 
 alphas.findAll(_ > 0.0).foreach {
@@ -168,7 +158,32 @@ println(b)
 // Full Platt SMO. This algorithm is more faster than Simplified SMO.
 import mlia.svm.FullSMO._
 
-TODO
+val (alphas, b) = smoP(dataArr.toArray, labelArr.toArray, 0.6, 0.001, 40)
+// L == H[0.0]
+// fullSet, iter: 0 i:0, pairs changed 0
+// L == H[0.0]
+// fullSet, iter: 0 i:1, pairs changed 0
+...
+// non-bound, iter: 1 i:10, pairs changed 2
+// j not moving enough[0.0]
+// non-bound, iter: 1 i:18, pairs changed 3
+// j not moving enough[0.0]
+...
+
+println(b)
+// -3.4003419604099356
+
+alphas.findAll(_ > 0.0).foreach {
+  case (row, col) => println(alphas(row,col))
+}
+// 0.06624541300925291
+// 0.010425363685532645
+// 0.0312636297140393
+// 0.028820482788998996
+// 0.029336716743063894
+// 0.04592338093481114
+// 0.11332957638200057
+// 0.11332957638200057
 
 ```
 
