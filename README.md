@@ -133,7 +133,7 @@ calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscen
 ```scala
 import breeze.linalg._
 import mlia.svm.Prep._
-import mlia.svm.SMO._
+import mlia.svm.SimplifiedSMO._
 
 val (dataArr, labelArr) = loadDataSet("/svm/testSet.txt")
 val (alphas, b): (DenseMatrix[Double], Double) = smoSimple(dataArr.toArray, labelArr.toArray, 0.6, 0.001, 40)
@@ -164,6 +164,12 @@ alphas.findAll(_ > 0.0).foreach {
 
 println(b)
 // -3.8418049116532984
+
+// Full Platt SMO. This algorithm is more faster than Simplified SMO.
+import mlia.svm.FullSMO._
+
+TODO
+
 ```
 
 ## See also
