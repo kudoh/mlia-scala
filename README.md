@@ -137,8 +137,33 @@ import mlia.svm.SMO._
 
 val (dataArr, labelArr) = loadDataSet("/svm/testSet.txt")
 val (alphas, b): (DenseMatrix[Double], Double) = smoSimple(dataArr.toArray, labelArr.toArray, 0.6, 0.001, 40)
+// iter: 0 i:0, pairs changed 1
+// iter: 0 i:2, pairs changed 2
+// j not moving enough[0.0]
+// iter: 0 i:8, pairs changed 3
+// j not moving enough[0.0]
+// j not moving enough[0.0]
+// j not moving enough[0.0]
+// L == H[0.0]
+// j not moving enough[0.0]
+// j not moving enough[0.0]
+// L == H[0.0]
+// iter: 0 i:57, pairs changed 4
+// L == H[0.0]
+// iter: 0 i:72, pairs changed 5
+// L == H[0.0]
+// ...
 
-// TODO more code...
+alphas.findAll(_ > 0.0).foreach {
+  case (row, col) => println(alphas(row,col))
+}
+// 0.12756738739781906
+// 0.2416951660901028
+// 2.7755575615628914E-17
+// 0.3692625534879218
+
+println(b)
+// -3.8418049116532984
 ```
 
 ## See also
