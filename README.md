@@ -185,6 +185,11 @@ alphas.findAll(_ > 0.0).foreach {
 // 0.11332957638200057
 // 0.11332957638200057
 
+// now, classify new dataset
+val ws = calcWs(alphas, dataArr, labelArr.toArray)
+// 0.5174891451517396    
+// -0.10098649982626291 
+
 ```
 
 ## See also
