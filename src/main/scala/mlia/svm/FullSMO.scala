@@ -133,7 +133,7 @@ object FullSMO {
             val (changed, newOS) = innerL(i, curOS)
             println(s"non-bound, iter: $iter i:$i, pairs changed $totalChanged")
             (totalChanged + changed, newOS)
-           }
+          }
         }
         // toggle entire set loop
         val updatedEntireSet = if (entireSet) false else if (alphaPairsChanged == 0) true else entireSet
@@ -170,6 +170,14 @@ object FullSMO {
     } else {
       val total = os.alpha(j) + os.alpha(i)
       (scala.math.max(0.0, total - os.constant), scala.math.min(os.constant, total))
+    }
+  }
+
+  def calcWs(alphas: Mat, dataArr: Seq[Array[Double]], classLabels: Array[Double]) = {
+    val x = DenseMatrix(dataArr: _*)
+    val labelMat = DenseMatrix(classLabels).t
+    Range(0, x.rows).foldLeft(DenseMatrix.zeros[Double](x.cols, 1)) { (state, i) =>
+      state :+ (alphas(i, ::) :* labelMat(i, ::): Mat) * x(i, ::)
     }
   }
 
