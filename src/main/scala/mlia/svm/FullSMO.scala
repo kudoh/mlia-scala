@@ -18,9 +18,9 @@ object FullSMO {
 
     val eCache: Mat = DenseMatrix.zeros[Double](dataMat.rows, 2)
 
-    def label(i: Int): Double = labelMat(i, 0)
-
     val rows = dataMat.rows
+
+    def label(i: Int): Double = labelMat(i, 0)
 
     def alpha(idx: Int) = alphas(idx, 0)
 
