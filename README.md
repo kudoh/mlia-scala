@@ -109,19 +109,19 @@ stocGradAscent1(dataMat, labelMat.toArray)
 // test each algorithm by error rate
 import mlia.lr.ColicTest._
 
-calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(gradAscent)
+calcErrorRateMean("/lr/horseColicTraining.txt","/lr/horseColicTest.txt")(gradAscent)
 // the error rate of this test is: 0.283582
 // the error rate of this test is: 0.283582
 // ...
 // after 10 iterations the average error rate is: 0.283582 <- well, not bad.
 
-calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscent0)
+calcErrorRateMean("/lr/horseColicTraining.txt","/lr/horseColicTest.txt")(stocGradAscent0)
 // the error rate of this test is: 0.507463
 // the error rate of this test is: 0.507463
 // ...
 // after 10 iterations the average error rate is: 0.507463 <- bad performance...
 
-calcErrorRateMean("/horseColicTraining.txt","/horseColicTest.txt")(stocGradAscent1Iter500)
+calcErrorRateMean("/lr/horseColicTraining.txt","/lr/horseColicTest.txt")(stocGradAscent1Iter500)
 // the error rate of this test is: 0.014925
 // the error rate of this test is: 0.000000
 // ...
@@ -189,6 +189,8 @@ alphas.findAll(_ > 0.0).foreach {
 val ws = calcWs(alphas, dataArr, labelArr.toArray)
 // 0.5174891451517396    
 // -0.10098649982626291 
+
+// TODO
 
 ```
 
