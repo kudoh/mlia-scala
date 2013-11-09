@@ -50,34 +50,32 @@ object FullSMO {
     def newB(b: Double) = {
       copy(b = b)
     }
-  }
 
-  case class JOpt(maxK: Int = -1, maxDeltaE: Double = 0.0, ej: Double = 0.0)
+    case class JOpt(maxK: Int = dataMat.rows - 1, maxDeltaE: Double = 0.0, ej: Double = 0.0)
 
-  def selectJ(i: Int, oS: OptStruct, ei: Double): (Int, Double) = {
-    oS.cache(i, ei)
-    val validEcacheList: Array[Int] = oS.validEcacheArr
+    def selectJ(i: Int, ei: Double): (Int, Double) = {
+      cache(i, ei)
 
-    if (validEcacheList.size > 1) {
-      // loop through valid Ecache values and find the one that maximizes delta E
-      val opt = validEcacheList.filter(_ != i).foldLeft(JOpt()) { (jOpt, k) =>
-        val ek = oS.calcEk(k)
-        val deltaE = abs(ei - ek)
-        if (deltaE >= jOpt.maxDeltaE) JOpt(k, deltaE, ek) else jOpt
+      if (validEcacheArr.size > 1) {
+        // loop through valid Ecache values and find the one that maximizes delta E
+        val opt = validEcacheArr.filter(_ != i).foldLeft(JOpt()) { (jOpt, k) =>
+          val ek = calcEk(k)
+          val deltaE = (ei - ek).abs
+          if (deltaE > jOpt.maxDeltaE) JOpt(k, deltaE, ek) else jOpt
+        }
+        (opt.maxK, opt.ej)
+      } else {
+        val j = selectJrand(i, rows)
+        val ej = calcEk(j)
+        (j, ej)
       }
-      (opt.maxK, opt.ej)
-    } else {
-      val j = selectJrand(i, oS.rows)
-      val ej = oS.calcEk(j)
-      (j, ej)
     }
   }
 
   def innerL(i: Int, oS: OptStruct) = {
     val ei = oS.calcEk(i)
-    if ((oS.label(i) * ei < -oS.tolerance && oS.alpha(i) < oS.constant) ||
-      (oS.label(i) * ei > oS.tolerance && oS.alpha(i) > 0)) {
-      val (j, ej) = selectJ(i, oS, ei)
+    if ((oS.label(i) * ei < -oS.tolerance && oS.alpha(i) < oS.constant) || (oS.label(i) * ei > oS.tolerance && oS.alpha(i) > 0)) {
+      val (j, ej) = oS.selectJ(i, ei)
       val (alphaIold, alphaJold) = (oS.alpha(i), oS.alpha(j))
       val (low, high) = calcLH(oS, i, j)
       if (low == high) {
@@ -93,8 +91,8 @@ object FullSMO {
           oS.alphas(j, 0) -= oS.label(j) * (ei - ej) / eta
           oS.alphas(j, 0) = clipAlpha(oS.alpha(j), high, low)
           oS.updateEk(j)
-          if (abs(oS.alpha(j) - alphaJold) < 0.00001) {
-            println(s"j not moving enough[${abs(oS.alpha(j) - alphaJold).abs}]")
+          if ((oS.alpha(j) - alphaJold).abs < 0.00001) {
+            println(s"j not moving enough[${(oS.alpha(j) - alphaJold).abs}]")
             (0, oS)
           } else {
             oS.alphas(i, 0) += (oS.label(j) * oS.label(i) * (alphaJold - oS.alpha(j)))
@@ -117,7 +115,7 @@ object FullSMO {
 
     @tailrec
     def outerL(oS: OptStruct, iter: Int = 0, entireSet: Boolean = true, curAlphaPairsChanged: Int = 0): (Mat, Double) = {
-      if (iter == maxIter && (curAlphaPairsChanged == 0 || entireSet)) {
+      if (iter >= maxIter || (curAlphaPairsChanged == 0 && !entireSet)) {
         (oS.alphas, oS.b)
       } else {
         val (alphaPairsChanged, updatedOS) = if (entireSet) {
@@ -181,7 +179,7 @@ object FullSMO {
     }
   }
 
-  // following code is as same as SimplifiedSMO
+  // the following code is the same as SimplifiedSMO
 
   def selectJrand(i: Int, m: Int): Int = {
     val rand = Uniform(0, m)
