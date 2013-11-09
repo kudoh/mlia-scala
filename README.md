@@ -1,6 +1,7 @@
 # Machine Learning in Action for Scala
 
-<a target="_blank" href="http://www.amazon.co.jp/Machine-Learning-Action-Peter-Harrington/dp/1617290181/?_encoding=UTF8&camp=247&creative=1211&linkCode=ur2&tag=noborukudoh-22">Machine Learning in Action</a><img src="http://ir-jp.amazon-adsystem.com/e/ir?t=noborukudoh-22&l=ur2&o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />のサンプルコードはpythonで書かれていますが、それをscalaで書き直してみました。
+<a target="_blank" href="http://www.amazon.co.jp/Machine-Learning-Action-Peter-Harrington/dp/1617290181/?_encoding=UTF8&camp=247&creative=1211&linkCode=ur2&tag=noborukudoh-22">Machine Learning in Action</a><img src="http://ir-jp.amazon-adsystem.com/e/ir?t=noborukudoh-22&l=ur2&o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />のサンプルコードはpythonで書かれていますが、scala版を作ってみました。
+現在は主要なアルゴリズム部分のみで、グラフィック関連のコードは省略しています。
 
 ## Chapter2 : k-Nearest Neighbors(k近傍法)
 
@@ -130,6 +131,7 @@ calcErrorRateMean("/lr/horseColicTraining.txt","/lr/horseColicTest.txt")(stocGra
 ```
 
 ## Chapter6 : Support Vector Machine(サポートベクターマシーン)
+Simplified SMO Algorithm
 ```scala
 import breeze.linalg._
 import mlia.svm.Prep._
@@ -154,7 +156,10 @@ alphas.findAll(_ > 0.0).foreach {
 
 println(b)
 // -3.8418049116532984
+```
 
+Full SMO
+```scala
 // Full Platt SMO. This algorithm is more faster than Simplified SMO.
 import mlia.svm.FullSMO._
 
@@ -174,23 +179,74 @@ println(b)
 // -3.4003419604099356
 
 alphas.findAll(_ > 0.0).foreach {
-  case (row, col) => println(alphas(row,col))
+  case (row, col) => println(s"support vector: ${dataArr(row).mkString(",")}, alpha: ${alphas(row,col)}, label: ${labelArr(row)}")
 }
-// 0.06624541300925291
-// 0.010425363685532645
-// 0.0312636297140393
-// 0.028820482788998996
-// 0.029336716743063894
-// 0.04592338093481114
-// 0.11332957638200057
-// 0.11332957638200057
+// support vector: 3.542485,1.977398, alpha: 0.11718183426962622, label: -1.0
+// support vector: 3.223038,-0.552392, alpha: 0.022762846775601038, label: -1.0
+// support vector: 7.286357,0.251077, alpha: 0.0135202386819083, label: 1.0
+// support vector: 3.457096,-0.082216, alpha: 0.0135202386819083, label: -1.0
+// support vector: 2.893743,-1.643468, alpha: 0.0908201901982198, label: -1.0
+// support vector: 5.286862,-2.358286, alpha: 0.11358303697382083, label: 1.0
+// support vector: 6.080573,0.418886, alpha: 0.11718183426962622, label: 1.0
 
-// now, classify new dataset
+// now, classify dataset
 val ws = calcWs(alphas, dataArr, labelArr.toArray)
 // 0.5174891451517396    
 // -0.10098649982626291 
 
-// TODO
+val dataMat = DenseMatrix(dataArr: _*)
+println(s"ws: ${(dataMat(0, ::) * ws: DenseMatrix[Double]) :+ b}, actual: ${labelArr(0)}")
+// ws: -1.0258808254189797  , actual: -1.0
+println(s"ws: ${(dataMat(2, ::) * ws: DenseMatrix[Double]) :+ b}, actual: ${labelArr(2)}")
+// ws: 2.376492433975608  , actual: 1.0
+```
+
+Using Kernel Function
+```scala
+import mlia.svm.FullSMOWithKernel._
+
+// radial bias function
+val dataMat = DenseMatrix(dataArr: _*)
+val labelMat = DenseMatrix(labelArr.toArray).t
+val os = OptStruct(dataMat,labelMat, DenseMatrix.zeros[Double](dataMat.rows, 1),0.0,200,0.0001,Kernel("rbf", Array(1.3)))
+println(os.k) // dataMat is transformed by kernel transformation
+// 1.0                  0.7040816347352673   0.7954283622305077   ... (100 total)
+// 0.7040816347352673   1.0                  0.6351840054854467   ...
+// 0.7954283622305077   0.6351840054854467   1.0                  ...
+// 0.7545606658622943   0.9256097040596233   0.836444104017469    ...
+// ...
+// 0.881210180460299    0.7585850539381088   0.9726618561420948   ...
+// ... (100 total)
+
+// training svm with radial bias function
+val (alphas, b) = smoP(dataArr.toArray, labelArr.toArray, 200.0, 0.0001, 10000,Kernel("rbf", Array(1.3)))
+// fullSet, iter: 0 i:0, pairs changed 0
+// L == H[0.0]
+// fullSet, iter: 0 i:1, pairs changed 1
+// fullSet, iter: 0 i:2, pairs changed 1
+// L == H[0.0]
+// fullSet, iter: 0 i:3, pairs changed 1
+// fullSet, iter: 0 i:4, pairs changed 1
+// ...
+
+alphas.findAll(_ > 0.0).foreach {
+  case (row, col) => println(s"support vector: ${dataArr(row).mkString(",")}, alpha: ${alphas(row, col)}, label: ${labelArr(row)}")
+}
+// support vector: -0.214824,0.662756, alpha: 0.6, label: -1.0
+// support vector: 0.22365,0.130142, alpha: 0.6, label: 1.0
+// support vector: -0.7488,-0.531637, alpha: 0.6, label: -1.0
+// support vector: 0.207123,-0.019463, alpha: 0.6, label: 1.0
+// support vector: 0.286462,0.71947, alpha: 0.6, label: -1.0
+
+println(b)
+// 1.1356280979492999
+
+// evaluate with test data
+import mlia.svm.NonLinearTest._
+calcErrorRate("/svm/testSetRBF.txt", "/svm/testSetRBF2.txt", 1.3)
+// there are 20 Support Vectors
+// the training error rate is: 0.00000
+// the test error rate is: 0.08000
 
 ```
 
