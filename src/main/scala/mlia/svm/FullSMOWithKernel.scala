@@ -21,8 +21,8 @@ object FullSMOWithKernel {
 
     val rows = dataMat.rows
 
-    val k = Range(0, dataMat.rows).foldLeft(DenseMatrix.zeros[Double](dataMat.rows, 1)) { (state, i) =>
-      state(i, ::) := kernelTrans(dataMat, dataMat(i, ::), kernel)
+    val k = Range(0, dataMat.rows).foldLeft(DenseMatrix.zeros[Double](dataMat.rows, dataMat.rows)) { (state, i) =>
+      state(i, ::) := kernelTrans(dataMat, dataMat(i, ::), kernel).toDenseVector
       state
     }
 
@@ -32,11 +32,11 @@ object FullSMOWithKernel {
 
     def validEcacheArr: Array[Int] = eCache(::, 0).findAll(_ != 0).toArray
 
-    def calcETA(i: Int, j: Int): Double =
-      ((((k(i, ::) * k(j, ::).t: Mat) :* 2.0: Mat) :- k(i, ::) * dataMat(i, ::).t: Mat) :- dataMat(j, ::) * dataMat(j, ::).t: Mat)(0, 0)
+    // changed for kernel
+    def calcETA(i: Int, j: Int): Double = 2.0 * k(i, j) - k(i, i) - k(j, j)
 
     def calcEk(ki: Int): Double = {
-      val fXk: Mat = (((alphas :* labelMat: Mat).t: Mat) * k(::, ki).toDenseMatrix: Mat) :+ b
+      val fXk: Mat = (((alphas :* labelMat: Mat): Mat).t * k(::, ki).toDenseMatrix.t: Mat) :+ b
       fXk(0, 0) - label(ki)
     }
 
@@ -53,34 +53,32 @@ object FullSMOWithKernel {
     def newB(b: Double) = {
       copy(b = b)
     }
-  }
 
-  case class JOpt(maxK: Int = -1, maxDeltaE: Double = 0.0, ej: Double = 0.0)
+    case class JOpt(maxK: Int = dataMat.rows - 1, maxDeltaE: Double = 0.0, ej: Double = 0.0)
 
-  def selectJ(i: Int, oS: OptStruct, ei: Double): (Int, Double) = {
-    oS.cache(i, ei)
-    val validEcacheList: Array[Int] = oS.validEcacheArr
-
-    if (validEcacheList.size > 1) {
-      // loop through valid Ecache values and find the one that maximizes delta E
-      val opt = validEcacheList.filter(_ != i).foldLeft(JOpt()) { (jOpt, k) =>
-        val ek = oS.calcEk(k)
-        val deltaE = abs(ei - ek)
-        if (deltaE >= jOpt.maxDeltaE) JOpt(k, deltaE, ek) else jOpt
+    def selectJ(i: Int, ei: Double): (Int, Double) = {
+      cache(i, ei)
+      if (validEcacheArr.size > 1) {
+        // loop through valid Ecache values and find the one that maximizes delta E
+        val opt = validEcacheArr.filter(_ != i).foldLeft(JOpt()) { (jOpt, k) =>
+          val ek = calcEk(k)
+          val deltaE = (ei - ek).abs
+          if (deltaE > jOpt.maxDeltaE) JOpt(k, deltaE, ek) else jOpt
+        }
+        (opt.maxK, opt.ej)
+      } else {
+        val j = selectJrand(i, rows)
+        val ej = calcEk(j)
+        (j, ej)
       }
-      (opt.maxK, opt.ej)
-    } else {
-      val j = selectJrand(i, oS.rows)
-      val ej = oS.calcEk(j)
-      (j, ej)
     }
   }
 
   def innerL(i: Int, oS: OptStruct) = {
     val ei = oS.calcEk(i)
-    if ((oS.label(i) * ei < -oS.tolerance && oS.alpha(i) < oS.constant) ||
-      (oS.label(i) * ei > oS.tolerance && oS.alpha(i) > 0)) {
-      val (j, ej) = selectJ(i, oS, ei)
+//    println(s"alpha:${oS.alpha(i)}, label:${oS.label(i)}, tol:${oS.tolerance}, C:${oS.constant}, Ei:$ei")
+    if (((oS.label(i) * ei < -oS.tolerance) && (oS.alpha(i) < oS.constant)) || ((oS.label(i) * ei) > oS.tolerance && oS.alpha(i) > 0)) {
+      val (j, ej) = oS.selectJ(i, ei)
       val (alphaIold, alphaJold) = (oS.alpha(i), oS.alpha(j))
       val (low, high) = calcLH(oS, i, j)
       if (low == high) {
@@ -96,8 +94,8 @@ object FullSMOWithKernel {
           oS.alphas(j, 0) -= oS.label(j) * (ei - ej) / eta
           oS.alphas(j, 0) = clipAlpha(oS.alpha(j), high, low)
           oS.updateEk(j)
-          if (abs(oS.alpha(j) - alphaJold) < 0.00001) {
-            println(s"j not moving enough[${abs(oS.alpha(j) - alphaJold).abs}]")
+          if ((oS.alpha(j) - alphaJold).abs < 0.00001) {
+            println(s"j not moving enough[${(oS.alpha(j) - alphaJold).abs}]")
             (0, oS)
           } else {
             oS.alphas(i, 0) += (oS.label(j) * oS.label(i) * (alphaJold - oS.alpha(j)))
@@ -116,11 +114,11 @@ object FullSMOWithKernel {
     } else (0, oS)
   }
 
-  def smoP(dataMatIn: Array[Array[Double]], classLabels: Array[Double], c: Double, toler: Double, maxIter: Int, kernel: Kernel = Kernel("lin", Array(0.0))): (Mat, Double) = {
+  def smoP(dataMatIn: Array[Array[Double]], classLabels: Array[Double], c: Double, toler: Double, maxIter: Int, kernel: Kernel = Kernel("lin", Array())): (Mat, Double) = {
 
     @tailrec
     def outerL(oS: OptStruct, iter: Int = 0, entireSet: Boolean = true, curAlphaPairsChanged: Int = 0): (Mat, Double) = {
-      if (iter == maxIter && (curAlphaPairsChanged == 0 || entireSet)) {
+      if (iter >= maxIter || (curAlphaPairsChanged == 0 && !entireSet)) {
         (oS.alphas, oS.b)
       } else {
         val (alphaPairsChanged, updatedOS) = if (entireSet) {
@@ -180,18 +178,18 @@ object FullSMOWithKernel {
   case class Kernel(name: String, opts: Array[Double])
 
   def kernelTrans(x: Mat, a: Mat, kernel: Kernel): Mat = kernel match {
-    case Kernel("lin", Array()) => x * a.t
+    case Kernel("lin", _) => x * a.t
     case Kernel("rbf", Array(sigma, _*)) =>
       val k = Range(0, x.rows).foldLeft(DenseMatrix.zeros[Double](x.rows, 1)) { (state, i) =>
-        val deltaRow = x(i, ::) - a
-        state(i, 0) = (deltaRow * deltaRow.t: Mat)(0, 0)
+        val deltaRow = x(i, ::) :- a
+        state(i, ::) := (deltaRow * deltaRow.t: Mat)(0, 0)
         state
       }
-      exp(k :/ scala.math.pow(-1 * sigma, 2): Mat)
+      exp(k :/ (-1 * scala.math.pow(sigma, 2)): Mat)
     case _ => throw new IllegalArgumentException("That Kernel is not recognized.")
   }
 
-  // following code is as same as SimplifiedSMO
+  // the following code is the same as SimplifiedSMO
 
   def selectJrand(i: Int, m: Int): Int = {
     val rand = Uniform(0, m)
