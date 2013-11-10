@@ -43,7 +43,7 @@ object NonLinearTest {
     def test(data: Mat, label: Mat): Double = errorCount(data, label).toDouble / data.rows
 
     private def errorCount(data: Mat, label: Mat): Int = {
-      Range(0, data.rows).foldLeft(0) { (state, i) =>
+      (0 until data.rows).foldLeft(0) { (state, i) =>
         val kernelEval = kernelTrans(sVs, data(i, ::), kernel)
         val predict = ((kernelEval.t * (labelSV :* svAlphas): Mat) :+ b: Mat)(0, 0)
         if (predict.signum != label(i, 0).signum) state + 1 else state

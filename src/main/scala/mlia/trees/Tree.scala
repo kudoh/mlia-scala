@@ -57,7 +57,7 @@ object Tree {
     val numFeatures = dataSet.head.data.size
     val baseEntropy = calcShannonEnt(dataSet)
 
-    Range(0, numFeatures).foldLeft(InformationGain(-1, 0.0)) { (curBest, cur) =>
+    (0 until numFeatures).foldLeft(InformationGain(-1, 0.0)) { (curBest, cur) =>
       val uniqueVals = dataSet.map(_.data(cur)).distinct
       val newEntropy = uniqueVals.foldLeft(0.0) { (ent, value) =>
         val subDataSet = splitDataSet(dataSet, cur, value)

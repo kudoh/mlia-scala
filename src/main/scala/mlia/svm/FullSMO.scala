@@ -2,7 +2,6 @@ package mlia.svm
 
 import scala.annotation.tailrec
 import breeze.linalg._
-import breeze.numerics._
 import breeze.stats.distributions.Uniform
 
 object FullSMO {
@@ -120,7 +119,7 @@ object FullSMO {
       } else {
         val (alphaPairsChanged, updatedOS) = if (entireSet) {
           // go over all values
-          Range(0, oS.rows).foldLeft(0, oS) { case ((totalChanged, curOS), i) =>
+          (0 until oS.rows).foldLeft(0, oS) { case ((totalChanged, curOS), i) =>
             val (changed, newOS) = innerL(i, curOS)
             println(s"fullSet, iter: $iter i:$i, pairs changed $totalChanged")
             (totalChanged + changed, newOS)
@@ -174,7 +173,7 @@ object FullSMO {
   def calcWs(alphas: Mat, dataArr: Seq[Array[Double]], classLabels: Array[Double]) = {
     val x = DenseMatrix(dataArr: _*)
     val labelMat = DenseMatrix(classLabels).t
-    Range(0, x.rows).foldLeft(DenseMatrix.zeros[Double](x.cols, 1)) { (state, i) =>
+    (0 until x.rows).foldLeft(DenseMatrix.zeros[Double](x.cols, 1)) { (state, i) =>
       state :+ (alphas(i, ::) :* labelMat(i, ::): Mat) * x(i, ::)
     }
   }

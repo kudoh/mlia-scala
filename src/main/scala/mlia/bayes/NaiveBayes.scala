@@ -21,7 +21,7 @@ object NaiveBayes {
     val numTrainDocs = trainMatrix.rows
     val numWords = trainMatrix.cols
 
-    val probs = Range(0, numTrainDocs).foldLeft((Prob(numWords), Prob(numWords))) { (state, i) =>
+    val probs = (0 until numTrainDocs).foldLeft((Prob(numWords), Prob(numWords))) { (state, i) =>
       val v: Vector[Int] = trainMatrix(i, ::).toDenseVector // [0, 1, 0, 0, 1, 0...]
       // vector addition
       if (trainCategory(i) == 1) (Prob(state._1.num + v, state._1.denom + v.sum), state._2) // add up class=1

@@ -26,7 +26,7 @@ object SimplifiedSMO {
                   curB: Double = 0): (DenseMatrix[Double], Double) = {
       if (curNum == maxIter) (curAlphas, curB)
       else {
-        val (iteAlphas, iteB, changeCount) = Range(0, dataMat.rows).foldLeft(curAlphas, curB, 0) {
+        val (iteAlphas, iteB, changeCount) = (0 until dataMat.rows).foldLeft(curAlphas, curB, 0) {
           case ((alphas, b, change), i) =>
 
             // this is our prediction of the class

@@ -18,7 +18,7 @@ object LogisticRegression {
     val dataMatrix = DenseMatrix(dataMatIn: _*)
     val labelMat = DenseMatrix(classLabels.map(_.toDouble)).t
 
-    Range(0, maxCycle).foldLeft(DenseMatrix.ones[Double](dataMatrix.cols, 1)) { (curWeight, cycle) =>
+    (0 until maxCycle).foldLeft(DenseMatrix.ones[Double](dataMatrix.cols, 1)) { (curWeight, cycle) =>
       val h = sigmoid(dataMatrix * curWeight)
       val error: Mat = labelMat :- h
       curWeight :+ (dataMatrix.t :* alpha: Mat) * error
@@ -39,8 +39,8 @@ object LogisticRegression {
 
   def stocGradAscent1(dataMatIn: List[Array[Double]], classLabels: Array[Int], numIter: Int = 150): Vec = {
 
-    Range(0, numIter).foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (outerState, i) =>
-      Range(0, dataMatIn.size).foldLeft((outerState, Range(0, dataMatIn.size).toArray)) { case ((curWeights, indices), j) =>
+    (0 until numIter).foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (outerState, i) =>
+      (0 until dataMatIn.size).foldLeft((outerState, (0 until dataMatIn.size).toArray)) { case ((curWeights, indices), j) =>
         val alpha = (4 / (1.0 + i + j)) + 0.01
         val randIndex = Uniform(0, indices.size).sample().toInt
         val vec = DenseVector(dataMatIn(randIndex))

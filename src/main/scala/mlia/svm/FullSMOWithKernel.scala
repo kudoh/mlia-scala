@@ -21,7 +21,7 @@ object FullSMOWithKernel {
 
     val rows = dataMat.rows
 
-    val k = Range(0, dataMat.rows).foldLeft(DenseMatrix.zeros[Double](dataMat.rows, dataMat.rows)) { (state, i) =>
+    val k = (0 until dataMat.rows).foldLeft(DenseMatrix.zeros[Double](dataMat.rows, dataMat.rows)) { (state, i) =>
       state(i, ::) := kernelTrans(dataMat, dataMat(i, ::), kernel).toDenseVector
       state
     }
@@ -123,7 +123,7 @@ object FullSMOWithKernel {
       } else {
         val (alphaPairsChanged, updatedOS) = if (entireSet) {
           // go over all values
-          Range(0, oS.rows).foldLeft(0, oS) { case ((totalChanged, curOS), i) =>
+          (0 until oS.rows).foldLeft(0, oS) { case ((totalChanged, curOS), i) =>
             val (changed, newOS) = innerL(i, curOS)
             println(s"fullSet, iter: $iter i:$i, pairs changed $totalChanged")
             (totalChanged + changed, newOS)
@@ -169,7 +169,7 @@ object FullSMOWithKernel {
   def calcWs(alphas: Mat, dataArr: Seq[Array[Double]], classLabels: Array[Double]) = {
     val x = DenseMatrix(dataArr: _*)
     val labelMat = DenseMatrix(classLabels).t
-    Range(0, x.rows).foldLeft(DenseMatrix.zeros[Double](x.cols, 1)) { (state, i) =>
+    (0 until x.rows).foldLeft(DenseMatrix.zeros[Double](x.cols, 1)) { (state, i) =>
       state :+ (alphas(i, ::) :* labelMat(i, ::): Mat) * x(i, ::)
     }
   }
@@ -180,7 +180,7 @@ object FullSMOWithKernel {
   def kernelTrans(x: Mat, a: Mat, kernel: Kernel): Mat = kernel match {
     case Kernel("lin", _) => x * a.t
     case Kernel("rbf", Array(sigma, _*)) =>
-      val k = Range(0, x.rows).foldLeft(DenseMatrix.zeros[Double](x.rows, 1)) { (state, i) =>
+      val k = (0 until x.rows).foldLeft(DenseMatrix.zeros[Double](x.rows, 1)) { (state, i) =>
         val deltaRow = x(i, ::) :- a
         state(i, ::) := (deltaRow * deltaRow.t: Mat)(0, 0)
         state
