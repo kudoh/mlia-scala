@@ -256,7 +256,7 @@ calcErrorRate("/svm/testSetRBF.txt", "/svm/testSetRBF2.txt", 1.3)
 
 ## Chapter7 : AdaBoost
 ```scala
-import mlia.adaboost.DecisionStump._
+import mlia.adaboost.AdaBoost._
 import mlia.adaboost.Prep._
 import breeze.linalg._
 
@@ -271,14 +271,22 @@ val stump = buildStump(dataMat, classLabels, D)
 // ...
 
 println(stump)
-// dim:0, threshold:1.3, ineqal:lt, minErr:0.2, 
-// bestClassEst:
-// -1.0  
-// 1.0   
-// -1.0  
-// -1.0  
-// 1.0   
+// dim:0, threshold:1.3, ineqal:lt, minErr:0.2, bestClassEst:[-1.0  1.0  -1.0  -1.0  1.0  ]
 
+val result = adaBoostTrainDS(dataMat, classLabels, 9)
+// D: 0.2  0.2  0.2  0.2  0.2  
+// classEst: -1.0  1.0  -1.0  -1.0  1.0  
+// aggClassEst: -0.6931471805599453  0.6931471805599453  -0.6931471805599453  ... (5 total)
+// total error: 0.2
+// ...
+// D: 0.2857142857142858  0.07142857142857145  0.07142857142857145  ... (5 total)
+// classEst: 1.0  1.0  1.0  1.0  1.0  
+// aggClassEst: 1.1756876285817386  2.561981989701629  -0.7702225204735744  ... (5 total)
+// total error: 0.0
+// Error Rate is 0.
+
+println(result)
+// 0.16666666666666674  0.041666666666666685  0.25  0.25  0.29166666666666663  , aggClassEst: 1.1756876285817386  2.561981989701629  -0.7702225204735744  ... (5 total), weakClassArr: dim:0, threshold:1.3, ineqal:lt, minErr:0.2, bestClassEst:[-1.0  1.0  -1.0  -1.0  1.0  ],dim:1, threshold:1.0, ineqal:lt, minErr:0.12500000000000003, bestClassEst:[1.0  1.0  -1.0  -1.0  -1.0  ],dim:0, threshold:2.0, ineqal:gt, minErr:0.1428571428571429, bestClassEst:[1.0  1.0  1.0  1.0  1.0  ]
 
 ```
 
