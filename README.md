@@ -161,7 +161,10 @@ println(b)
 Full SMO
 ```scala
 // Full Platt SMO. This algorithm is more faster than Simplified SMO.
+import breeze.linalg._
 import mlia.svm.FullSMO._
+import mlia.svm.Prep._
+val (dataArr, labelArr) = loadDataSet("/svm/testSet.txt")
 
 val (alphas, b) = smoP(dataArr.toArray, labelArr.toArray, 0.6, 0.001, 40)
 // L == H[0.0]
@@ -203,6 +206,7 @@ println(s"ws: ${(dataMat(2, ::) * ws: DenseMatrix[Double]) :+ b}, actual: ${labe
 
 Using Kernel Function
 ```scala
+import breeze.linalg._
 import mlia.svm.FullSMOWithKernel._
 
 // radial bias function
@@ -247,6 +251,34 @@ calcErrorRate("/svm/testSetRBF.txt", "/svm/testSetRBF2.txt", 1.3)
 // there are 20 Support Vectors
 // the training error rate is: 0.00000
 // the test error rate is: 0.08000
+
+```
+
+## Chapter7 : AdaBoost
+```scala
+import mlia.adaboost.DecisionStump._
+import mlia.adaboost.Prep._
+import breeze.linalg._
+
+val (dataMat, classLabels) = loadSimpData()
+
+val D = DenseMatrix.ones[Double](5, 1) :/ 5.0
+val stump = buildStump(dataMat, classLabels, D)
+// split: dim 0, thresh 1.00, thresh ineqal: lt, the weighted error is 0.400
+// split: dim 0, thresh 1.00, thresh ineqal: gt, the weighted error is 0.600
+// split: dim 0, thresh 1.10, thresh ineqal: lt, the weighted error is 0.400
+// split: dim 0, thresh 1.10, thresh ineqal: gt, the weighted error is 0.600
+// ...
+
+println(stump)
+// dim:0, threshold:1.3, ineqal:lt, minErr:0.2, 
+// bestClassEst:
+// -1.0  
+// 1.0   
+// -1.0  
+// -1.0  
+// 1.0   
+
 
 ```
 
