@@ -116,11 +116,12 @@ object AdaBoost {
 
     val dataMatrix = DenseMatrix(datToClass: _*)
     val initialEst = DenseMatrix.zeros[Double](dataMatrix.rows, 1)
-    classifierArr.zipWithIndex.foldLeft(initialEst) { case (aggClassEst, (classifier, i)) =>
+    val weights = classifierArr.zipWithIndex.foldLeft(initialEst) { case (aggClassEst, (classifier, i)) =>
       val classEst = stumpClassify(dataMatrix, classifier.dim, classifier.threshold, classifier.ineq)
       aggClassEst :+= classEst * classifier.alpha
       println(aggClassEst)
       aggClassEst
     }
+    signum(weights)
   }
 }
