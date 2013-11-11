@@ -273,6 +273,7 @@ val stump = buildStump(dataMat, classLabels, D)
 println(stump)
 // dim:0, threshold:1.3, ineqal:lt, minErr:0.2, bestClassEst:[-1.0  1.0  -1.0  -1.0  1.0  ]
 
+// training adaboost with sample data
 val result = adaBoostTrainDS(dataMat, classLabels, 9)
 // D: 0.2  0.2  0.2  0.2  0.2  
 // classEst: -1.0  1.0  -1.0  -1.0  1.0  
@@ -288,6 +289,32 @@ val result = adaBoostTrainDS(dataMat, classLabels, 9)
 println(result)
 // 0.16666666666666674  0.041666666666666685  0.25  0.25  0.29166666666666663  , aggClassEst: 1.1756876285817386  2.561981989701629  -0.7702225204735744  ... (5 total), weakClassArr: dim:0, threshold:1.3, ineqal:lt, minErr:0.2, bestClassEst:[-1.0  1.0  -1.0  -1.0  1.0  ],dim:1, threshold:1.0, ineqal:lt, minErr:0.12500000000000003, bestClassEst:[1.0  1.0  -1.0  -1.0  -1.0  ],dim:0, threshold:2.0, ineqal:gt, minErr:0.1428571428571429, bestClassEst:[1.0  1.0  1.0  1.0  1.0  ]
 
+// classify new data [[0, 0]]
+val classified = adaClassify(Array(Array(0.0, 0.0)), result.weakClassArr)
+println(f"classified as ${classified.t}")
+// classified as -1.0
+
+// training real world data
+val (dataArr, labelArr) = loadDataSet("/adaboost/horseColicTraining2.txt")
+val classifiedArray = adaBoostTrainDS(dataArr, labelArr, 10)
+// classifiedArray: mlia.adaboost.AdaBoost.Result = D: 0.0023561318612627235  0.007708336975987579  ... (299 total), aggClassEst: -0.646419000711108  0.5388622340786399  0.9172655524009455  ... (299 total), weakClassArr: dim:9, threshold:3.0, ineqal:gt, minErr:0.28428093645484936, bestClassEst:[-1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  -1.0  -1.0  1.0  1.0  ... (299 total)],dim:17, threshold:52.5, ineqal:gt, minErr:0.3486531061022538, bestClassEst:[1.0  1.0  1.0  1.0  -1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  ... (299 total)],dim:3, threshold:55.199999999999996, ineqal:gt, minErr:0.36040207257874546, bestClassEst:[-1.0  -1.0  1.0  -1.0  -1.0  1.0  1.0  -1.0  -1.0  -1.0  -1.0  ... (299 total)],dim:18, threshold:62.300000000000004, ineqal:lt, minErr:0.38557761823256786, bestClassEst:[-1.0  1.0...
+
+// ... and test classifiers made by adaboost
+val (testArr, testLabelArr) = loadDataSet("/adaboost/horseColicTest2.txt")
+val prediction10 = adaClassify(testArr, classifiedArray.weakClassArr)
+// 1.0   
+// 1.0   
+// 1.0   
+// -1.0  
+// 1.0   
+// ...
+
+val errSum = (0 until testArr.size).foldLeft(DenseMatrix.zeros[Double](testArr.size, 1)) { (errors, i) =>
+  errors(i, 0) = if (prediction10(i, 0).signum == testLabelArr(i)) 0.0 else 1.0; errors
+}.sum
+// error sum is 16.0
+println(f"ErrorRate : $errSum / ${testArr.size} = ${errSum / testArr.size}%.3f")
+// ErrorRate : 16.0 / 67 = 0.239  it's better performance than lagistic regression algorithm!
 ```
 
 ## See also
