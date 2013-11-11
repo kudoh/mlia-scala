@@ -112,7 +112,7 @@ object AdaBoost {
     loop(initialResult, 0, 100.0)
   }
 
-  def adaClassify(datToClass: Array[Array[Double]], classifierArr: Array[Stump]) = {
+  def adaClassify(datToClass: Array[Array[Double]], classifierArr: Array[Stump]): DenseMatrix[Double] = {
 
     val dataMatrix = DenseMatrix(datToClass: _*)
     val initialEst = DenseMatrix.zeros[Double](dataMatrix.rows, 1)
