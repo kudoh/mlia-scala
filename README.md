@@ -317,5 +317,27 @@ println(f"ErrorRate : $errSum / ${testArr.size} = ${errSum / testArr.size}%.3f")
 // ErrorRate : 16.0 / 67 = 0.239  it's better performance than lagistic regression algorithm!
 ```
 
+## Chapter8 : Regression
+```scala
+import mlia.regression.Prep._
+import mlia.regression.Regression._
+
+val (xArr, yArr) = loadDataSet("/regression/ex0.txt")
+val ws = standRegres(xArr, yArr)
+println(ws)
+// 3.0077432426975843  
+// 1.6953226421712309  
+
+val ws2 = lwlr(xArr(0), xArr, yArr, 1.0)
+println(ws2)
+// 3.1220447140568712
+
+val yHat = lwlrTest(xArr, xArr, yArr, 0.003)
+println(yHat)
+DenseVector(3.1220447140568712, 3.732843357024315, 4.696920329650367...)
+
+// TODO
+```
+
 ## See also
   [Data Fun!](http://data-fun.machine-learning.cloudbees.net)
