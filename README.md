@@ -336,7 +336,42 @@ val yHat = lwlrTest(xArr, xArr, yArr, 0.003)
 println(yHat)
 DenseVector(3.1220447140568712, 3.732843357024315, 4.696920329650367...)
 
+val (abX, abY) = loadDataSet("/regression/abalone.txt")
+val trainingData = abX.slice(0, 99)
+val testData = abX.slice(100, 199)
+val trainingLabel = abY.slice(0, 99)
+val testLabel = abY.slice(100, 199)
+
+// training phase
+val errorOnTrain = lwlrTest(trainingData, trainingData, trainingLabel, _: Double)
+val yHat01 = errorOnTrain(0.1)
+val yHat1 = errorOnTrain(1.0)
+val yHat10 = errorOnTrain(10.0)
+
+println(rssError(trainingLabel, yHat01.toArray))
+// 56.786084839560374
+println(rssError(trainingLabel, yHat1.toArray))
+// 429.8905618703185 
+println(rssError(trainingLabel, yHat10.toArray))
+// 549.1181708824757
+// in training, the best k is 0.1
+
+// evaluation phase
+val errorOnTest = lwlrTest(testData, trainingData, trainingLabel, _: Double)
+val yHat01t = errorOnTest(0.1)
+val yHat1t = errorOnTest(1.0)
+val yHat10t = errorOnTest(10.0)
+
+println(rssError(testLabel, yHat01t.toArray))
+// 27147.531252580342
+println(rssError(testLabel, yHat1t.toArray))
+// 573.5261441896957
+println(rssError(testLabel, yHat10t.toArray))
+// 517.5711905379372
+// in testing, the best k is 10
+
 // TODO
+
 ```
 
 ## See also

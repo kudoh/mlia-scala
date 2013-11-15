@@ -21,7 +21,7 @@ object Regression {
   }
 
   /**
-   * Locally weighted liner regression
+   * Locally weighted liner regression.
    */
   def lwlr(testPoint: Array[Double], xArr: Array[Array[Double]], yArr: Array[Double], k: Double = 1.0): DenseMatrix[Double] = {
     val xMat = DenseMatrix(xArr: _*)
@@ -43,7 +43,10 @@ object Regression {
 
   def lwlrTest(testArr: Array[Array[Double]], xArr: Array[Array[Double]], yArr: Array[Double], k: Double = 1.0): DenseVector[Double] = {
     testArr.zipWithIndex.foldLeft(DenseVector.zeros[Double](testArr.size)) { case (yHat, (test, i)) =>
-      yHat(i) = lwlr(test, xArr, yArr)(0, 0); yHat
+      yHat(i) = lwlr(test, xArr, yArr, k)(0, 0); yHat
     }
   }
+
+  def rssError(yArr: Array[Double], yHatArr: Array[Double]): Double =
+    yArr.zip(yHatArr).foldLeft(0.0) { case (state, (y, yHat)) => state + scala.math.pow(y - yHat, 2) }
 }
