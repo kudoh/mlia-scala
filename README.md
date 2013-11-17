@@ -322,12 +322,14 @@ println(f"ErrorRate : $errSum / ${testArr.size} = ${errSum / testArr.size}%.3f")
 import mlia.regression.Prep._
 import mlia.regression.Regression._
 
+// regular regression algorithm
 val (xArr, yArr) = loadDataSet("/regression/ex0.txt")
 val ws = standRegres(xArr, yArr)
 println(ws)
 // 3.0077432426975843  
 // 1.6953226421712309  
 
+// locally weighted linear regression algorithm
 val ws2 = lwlr(xArr(0), xArr, yArr, 1.0)
 println(ws2)
 // 3.1220447140568712
@@ -336,6 +338,7 @@ val yHat = lwlrTest(xArr, xArr, yArr, 0.003)
 println(yHat)
 DenseVector(3.1220447140568712, 3.732843357024315, 4.696920329650367...)
 
+// for now, we use real world data
 val (abX, abY) = loadDataSet("/regression/abalone.txt")
 val trainingData = abX.slice(0, 99)
 val testData = abX.slice(100, 199)
@@ -369,6 +372,13 @@ println(rssError(testLabel, yHat1t.toArray))
 println(rssError(testLabel, yHat10t.toArray))
 // 517.5711905379372
 // in testing, the best k is 10
+
+// ridge regression
+val ridgeWeights = ridgeTest(abX, abY)
+println(ridgeWeights)
+// 0.04305450237294814     -0.022747080359499905  ... (8 total)
+// 0.04305450035811531     -0.022747082766817972  ...
+// ...
 
 // TODO
 
