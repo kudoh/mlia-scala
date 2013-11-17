@@ -380,5 +380,17 @@ println(stageWiseWeights.t)
 
 ```
 
+## Chapter9 : Tree-based Regression
+```scala
+import mlia.cart.Cart._
+import mlia.cart.Prep._
+
+// CART algorithm
+val myDat: Array[Array[Double]] = loadDataSet("/cart/ex00.txt")
+DataSet(myDat).createTree(Array(1.0, 4.0))(Regression)
+// [feature: 0, threshold: 0.48813, left: 1.018096767241379, , right: -0.04465028571428573]
+
+```
+
 ## See also
   [Data Fun!](http://data-fun.machine-learning.cloudbees.net)
