@@ -68,17 +68,62 @@ object Regression {
     val xMat = DenseMatrix(xArr: _*)
     val yMat = DenseMatrix(yArr).t
     val yMean = mean(yMat)
-    val yDev: Mat = yMat :- yMean
-    val xMeans: DenseMatrix[Double] = mean(xMat, Axis._0)
-    val xVar = variance(xMat, Axis._0)
-    val xNorm = (0 until xMat.rows).foldLeft(DenseMatrix.zeros[Double](xMat.rows, xMat.cols)) { (state, i) =>
-      state(i, ::) := (xMat(i, ::) - xMeans) / xVar
-      state
-    }
+    // to eliminate X0 take mean off of Y
+    val yDev: Mat = yMat - yMean
+
+    val xReg = regularize(xMat)
+
     (0 until 30).foldLeft(DenseMatrix.zeros[Double](30, xMat.cols)) { (state, i) =>
-      val ws = ridgeRegres(xNorm, yDev, scala.math.exp(i - 10))
+      val ws = ridgeRegres(xReg, yDev, scala.math.exp(i - 10))
       state(i, ::) := ws.t
       state
     }
   }
+
+  /**
+   * utility: regularize by columns.
+   */
+  def regularize(xMat: Mat): Mat = {
+    // calc mean then subtract it off
+    val xMeans: DenseMatrix[Double] = mean(xMat, Axis._0)
+    // calc variance of Xi then divide by it
+    val xVar = variance(xMat, Axis._0)
+    (0 until xMat.rows).foldLeft(DenseMatrix.zeros[Double](xMat.rows, xMat.cols)) { (state, i) =>
+      state(i, ::) := (xMat(i, ::) - xMeans) / xVar
+      state
+    }
+  }
+
+  case class StageWiseState(ws: Mat, wsMax: Mat, lowestError: Double = Double.PositiveInfinity) {
+    def initError(): StageWiseState = copy(lowestError = Double.PositiveInfinity)
+  }
+
+  object StageWiseState {
+    def apply(ws: Mat): StageWiseState = StageWiseState(ws, ws)
+  }
+
+  /**
+   * Forward stagewise regression.
+   */
+  def stageWise(xArr: Array[Array[Double]], yArr: Array[Double], eps: Double = 0.01, numIt: Int = 100) = {
+    val xMat = DenseMatrix(xArr: _*)
+    val yMat = DenseMatrix(yArr).t
+    val yMean = mean(yMat)
+    val yDev: Mat = yMat - yMean
+    val xReg = regularize(xMat)
+
+    (0 until numIt).foldLeft(StageWiseState(DenseMatrix.zeros[Double](xMat.cols, 1))) { (outerState, i) =>
+      println(outerState.ws.t)
+      val curState = (0 until xMat.cols).foldLeft(outerState.initError()) { (innerState, j) =>
+        Array(-1, 1).foldLeft(innerState) { (state, sign) =>
+          val wsTest = state.ws.copy
+          wsTest(j, 0) += eps * sign
+          val yTest: Mat = xReg * wsTest
+          val rssE = rssError(yDev.valuesIterator.toArray, yTest.valuesIterator.toArray)
+          if (rssE < state.lowestError) state.copy(lowestError = rssE, wsMax = wsTest) else state
+        }
+      }
+      curState.copy(ws = curState.wsMax)
+    }
+  }.ws
 }

@@ -373,14 +373,10 @@ println(rssError(testLabel, yHat10t.toArray))
 // 517.5711905379372
 // in testing, the best k is 10
 
-// ridge regression
-val ridgeWeights = ridgeTest(abX, abY)
-println(ridgeWeights)
-// 0.04305450237294814     -0.022747080359499905  ... (8 total)
-// 0.04305450035811531     -0.022747082766817972  ...
-// ...
-
-// TODO
+// ridge regression algorithm
+val stageWiseWeights = stageWise(abX, abY, 0.01, 200)
+println(stageWiseWeights.t)
+// 0.05  0.0  0.09  0.03  0.3100000000000001  -0.6400000000000003  0.0  0.36000000000000015
 
 ```
 
