@@ -116,7 +116,6 @@ object Cart {
             if (newS < curCtx.bestS) BestSplitCtx(bestS = newS, bestIndex = featIndex, bestValue = splitVal) else curCtx
           }
         }
-        println(s"${finalCtx.bestIndex}:${finalCtx.bestValue}:${finalCtx.bestS}")
         // if the decrease (S-bestS) is less than a threshold don't do the split
         if ((S - finalCtx.bestS) < tolS) (None, model.getLeaf(this))
         else {
