@@ -9,9 +9,45 @@ object Cart {
 
   case class TreeNode(spInd: Int = -1, spVal: Double, left: Option[TreeNode] = None, right: Option[TreeNode] = None) {
 
-    override def toString: String = if (!isLeaf) s"[feature: $spInd, threshold: $spVal, left: ${left.getOrElse("-")}, , right: ${right.getOrElse("-")}]" else s"$spVal"
+    override def toString: String = if (!isLeaf) s"[feature: $spInd, threshold: $spVal, left: ${left.getOrElse("-")}, right: ${right.getOrElse("-")}]" else s"$spVal"
 
     val isLeaf = spInd == -1
+
+    val isTree = !isLeaf
+
+    def mean: Double = {
+      ((right map (r => if (r.isTree) r.mean else spVal)).getOrElse(spVal) +
+        (left map (l => if (l.isTree) l.mean else spVal)).getOrElse(spVal)) / 2.0
+    }
+
+    def leftValue = left.filter(_.isLeaf).map(_.spVal).getOrElse(throw new IllegalStateException())
+
+    def rightValue = right.filter(_.isLeaf).map(_.spVal).getOrElse(throw new IllegalStateException())
+
+    def prune(testData: DataSet): TreeNode = {
+      if (testData.length == 0) TreeNode(-1, mean)
+      else {
+        val curTree = if (right.exists(_.isTree) || left.exists(_.isTree)) {
+          val (lSet, rSet) = testData.binSplitDataSet(spInd, spVal)
+          val maybeLeft = left.filter(_.isTree).map(_.prune(lSet)).orElse(left)
+          val maybeRight = right.filter(_.isTree).map(_.prune(rSet)).orElse(right)
+          copy(left = maybeLeft, right = maybeRight)
+        } else this
+
+        if (curTree.right.exists(_.isLeaf) && curTree.left.exists(_.isLeaf)) {
+          val (lSet, rSet) = testData.binSplitDataSet(curTree.spInd, curTree.spVal)
+          val errorNoMerge = square(lSet.labelMat - curTree.leftValue).sum + square(rSet.labelMat - curTree.rightValue).sum
+          val treeMean = (curTree.leftValue + curTree.rightValue) / 2.0
+          val errorMerge = square(testData.labelMat - treeMean).sum
+          if (errorMerge < errorNoMerge) {
+            println("merging")
+            TreeNode(-1, treeMean)
+          } else curTree
+        } else curTree
+      }
+    }
+
+    def square(m: DenseMatrix[Double]): DenseMatrix[Double] = m.map(x => scala.math.pow(x, 2))
   }
 
   case class Row(data: Array[Double])
@@ -23,6 +59,8 @@ object Cart {
     val iterator: Iterator[Row] = rows.iterator
 
     lazy val allSameLabel: Boolean = rows.map(_.data.last).distinct.size == 1
+
+    lazy val labelMat: DenseMatrix[Double] = DenseMatrix(rows.map(_.data.last))
 
     def foldPredictors[R](z: R)(op: (R, Double, Int) => R): R = rows.map(_.data.slice(0, colSize - 1)).foldLeft(z) { (outer, elem) =>
       elem.zipWithIndex.foldLeft(outer) { case (inner, (value, colIdx)) => op(inner, value, colIdx) }
@@ -52,7 +90,7 @@ object Cart {
       split(0, DataSet.empty, DataSet.empty)
     }
 
-    def createTree(ops: Array[Double] = Array.empty)(implicit model: Model): TreeNode = {
+    def createTree(ops: Array[Double])(implicit model: Model): TreeNode = {
       val (feat, value) = chooseBestSplit(ops)
       feat.map { idx =>
         val (lSet, rSet) = binSplitDataSet(idx, value)
@@ -62,7 +100,7 @@ object Cart {
 
     case class BestSplitCtx(bestS: Double = Double.PositiveInfinity, bestIndex: Int = 0, bestValue: Double = 0.0)
 
-    def chooseBestSplit(ops: Array[Double] = Array(1, 4))(implicit model: Model): (Option[Int], Double) = {
+    def chooseBestSplit(ops: Array[Double])(implicit model: Model): (Option[Int], Double) = {
 
       val Array(tolS, tolN, _*) = ops
       // if all the target variables are the same value: quit and return value
@@ -78,15 +116,14 @@ object Cart {
             if (newS < curCtx.bestS) BestSplitCtx(bestS = newS, bestIndex = featIndex, bestValue = splitVal) else curCtx
           }
         }
-
+        println(s"${finalCtx.bestIndex}:${finalCtx.bestValue}:${finalCtx.bestS}")
         // if the decrease (S-bestS) is less than a threshold don't do the split
-        if ((S - finalCtx.bestS) < tolS) {
-          (None, model.getLeaf(this))
-        } else {
+        if ((S - finalCtx.bestS) < tolS) (None, model.getLeaf(this))
+        else {
           val (left2, right2) = this.binSplitDataSet(finalCtx.bestIndex, finalCtx.bestValue)
-          if (left2.length < tolN || right2.length < tolN) {
-            (None, model.getLeaf(this))
-          } else {
+          if (left2.length < tolN || right2.length < tolN) (None, model.getLeaf(this))
+          else {
+            println(finalCtx.bestIndex + ":" + finalCtx.bestValue)
             (Some(finalCtx.bestIndex), finalCtx.bestValue)
           }
         }
@@ -114,7 +151,11 @@ object Cart {
 
     def getLeaf(dataSet: DataSet): Double = mean(dataSet.rows.map(_.data.last))
 
-    def calcError(dataSet: DataSet): Double = variance(dataSet.rows.map(_.data.last)) * dataSet.length
+    def calcError(dataSet: DataSet): Double = {
+      val labels = dataSet.rows.map(_.data.last)
+      val avg = mean(labels)
+      labels.map(x => scala.math.pow(x - avg, 2)).sum
+    }
   }
 
 }

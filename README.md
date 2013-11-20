@@ -386,9 +386,33 @@ import mlia.cart.Cart._
 import mlia.cart.Prep._
 
 // CART algorithm
-val myDat: Array[Array[Double]] = loadDataSet("/cart/ex00.txt")
-DataSet(myDat).createTree(Array(1.0, 4.0))(Regression)
-// [feature: 0, threshold: 0.48813, left: 1.018096767241379, , right: -0.04465028571428573]
+val myDat = loadDataSet("/cart/ex00.txt")
+println(DataSet(myDat).createTree(Array(1.0, 4.0))(Regression))
+// [feature: 0, threshold: 0.48813, left: 1.018096767241379, right: -0.04465028571428573]
+
+val myDat1 = loadDataSet("/cart/ex0.txt")
+println(DataSet(myDat1).createTree(Array(1.0, 4.0))(Regression))
+// [feature: 1, threshold: 0.39435, left: [feature: 1, threshold: 0.582002, left: [feature: 1, threshold: 0.797583, left: 3.9871632000000004, right: 2.9836209534883724], right: 1.9800350714285717], right: [feature: 1, threshold: 0.197834, left: 1.0289583666666664, right: -0.023838155555555553]]
+
+// post pruning
+val myDat2 = loadDataSet("/cart/ex2.txt")
+val tree = DataSet(myDat2).createTree(Array(0.0, 1.0))(Regression)
+println(tree)
+// very huge tree!!
+// [feature: 0, threshold: 0.499171, left: [feature: 0, threshold: 0.729397, left: [feature: 0, threshold: 0.952833, left: [feature: 0, threshold: 0.965969, left: [feature: 0, threshold: 0.968621, left: 86.399637, right: 98.648346], right: [feature: 0, threshold: 0.956951, left: [feature: 0, threshold: 0.958512, left: [feature: 0, threshold: 0.960398, left: 112.386764, right: 123.559747], right: 135.837013]...
+
+// from now, prune tree using test data set
+val myDatTest = loadDataSet("/cart/ex2test.txt")
+val pruned = tree.prune(DataSet(myDatTest))
+// merging
+// merging
+// merging
+// ...
+println(pruned)
+// [feature: 0, threshold: 0.499171, left: [feature: 0, threshold: 0.729397, left: [feature: 0, threshold: 0.952833, left: [feature: 0, threshold: 0.965969, left: 92.5239915, right: [feature: 0, threshold: 0.956951, left: [feature: 0, threshold: 0.958512, left: [feature: 0, threshold: 0.960398, left: 112.386764, right: 123.559747], right: 135.837013], right: [feature: 0, threshold: 0.953902, left: 0.954711, right: 130.92648]]], ...
+
+// Model Tree(it can use non-linear data)
+// TODO
 
 ```
 
