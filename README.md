@@ -314,7 +314,7 @@ val errSum = (0 until testArr.size).foldLeft(DenseMatrix.zeros[Double](testArr.s
 }.sum
 // error sum is 16.0
 println(f"ErrorRate : $errSum / ${testArr.size} = ${errSum / testArr.size}%.3f")
-// ErrorRate : 16.0 / 67 = 0.239  it's better performance than lagistic regression algorithm!
+// ErrorRate : 16.0 / 67 = 0.239  it's better performance than logistic regression algorithm!
 ```
 
 ## Chapter8 : Regression
@@ -445,9 +445,21 @@ println(cor(yHat3, testDs.labelMat.t))
 ```
 ## Chapter10 : k-means clustering(k平均法クラスタリング)
 ```scala
-import mlia.kmeans.Clustering._
-import mlia.kmeans.Prep._
 import breeze.linalg._
+import mlia.kmeans.Prep._
+import mlia.kmeans.Clustering._
+
+distEuclid(DenseVector(1.0, 2.0, 3.0), DenseVector(1.0, 2.0, 4.5)) // => 1.5
+distEuclid(DenseVector(1.0, 2.0, 3.0), DenseVector(2.0, 2.0, 4.0)) // => 1.4142135623730951
+
+val ds = loadDataSet("/kmeans/testSet.txt")
+val dataMat = DenseMatrix(ds: _*)
+val centroids = randCent(dataMat, 4)
+println(centroids)
+// 0.7244759139527979   0.7994629624180147   
+// -0.2003634693789449  4.600134539120732    
+// 0.5992151107783439   -1.4011161029670691  
+// 3.3725020686710225   3.7899126854381118 
 
 ```
 
