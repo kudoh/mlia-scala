@@ -94,8 +94,8 @@ object Regression {
     }
   }
 
-  case class StageWiseState(ws: Mat, wsMax: Mat, lowestError: Double = Double.PositiveInfinity) {
-    def initError(): StageWiseState = copy(lowestError = Double.PositiveInfinity)
+  case class StageWiseState(ws: Mat, wsMax: Mat, lowestError: Double = Inf) {
+    def initError(): StageWiseState = copy(lowestError = Inf)
   }
 
   object StageWiseState {

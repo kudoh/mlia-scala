@@ -23,8 +23,7 @@ object AdaBoost {
 
   case class Stump(dim: Int = -1, threshold: Double = 0.0,
                    ineq: String = "", bestClassEst: Mat,
-                   minError: Double = Double.PositiveInfinity,
-                   alpha: Double = 0.0) {
+                   minError: Double = Inf, alpha: Double = 0.0) {
     override def toString = s"dim:$dim, threshold:$threshold, ineqal:$ineq, minErr:$minError, bestClassEst:[${bestClassEst.t}]"
   }
 
