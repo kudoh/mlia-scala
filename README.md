@@ -384,6 +384,7 @@ println(stageWiseWeights.t)
 ```scala
 import mlia.cart.Cart._
 import mlia.cart.Prep._
+import breeze.linalg._
 
 // CART algorithm
 val myDat = loadDataSet("/cart/ex00.txt")
@@ -439,7 +440,14 @@ val yHat3 = (0 until testDs.length).foldLeft(DenseMatrix.zeros[Double](testDs.le
   curYHat
 }
 println(cor(yHat3, testDs.labelMat.t))
-// 0.9434684235674751 => it's lowest performance among the others.
+// 0.9434684235674751 => it's lowest performance in regression algorithms on this data set.
+
+```
+## Chapter10 : k-means clustering(k平均法クラスタリング)
+```scala
+import mlia.kmeans.Clustering._
+import mlia.kmeans.Prep._
+import breeze.linalg._
 
 ```
 
