@@ -2,7 +2,6 @@ package mlia.cart
 
 import breeze.linalg._
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 object Cart {
 
@@ -12,7 +11,7 @@ object Cart {
 
   abstract class TreeNode[T](val spInd: Int, val spVal: T, val left: Option[TreeNode[T]] = None, val right: Option[TreeNode[T]] = None) {
 
-    override def toString: String = if (!isLeaf) s"[feature: $spInd, threshold: $spVal, left: ${left.getOrElse("-")}, right: ${right.getOrElse("-")}]" else s"$spVal"
+    override def toString: String = if (!isLeaf) s"[feature: $spInd, value: $spVal, left: ${left.getOrElse("-")}, right: ${right.getOrElse("-")}]" else s"$spVal"
 
     val isLeaf = spInd == -1
 
@@ -80,6 +79,8 @@ object Cart {
                        override val left: Option[TreeNode[Mat]] = None,
                        override val right: Option[TreeNode[Mat]] = None) extends TreeNode[Mat](spInd, spVal, left, right) {
 
+    override def toString: String = if (!isLeaf) s"[feature: $spInd, value: [${spVal.valueAt(0)}], left: ${left.getOrElse("-")}, right: ${right.getOrElse("-")}]" else s"(${spVal.valuesIterator.mkString(",")})"
+
     val doubleValue: Double = spVal(0, 0)
 
     def wrapDouble(d: Double): Mat = DenseMatrix(d)
@@ -92,29 +93,7 @@ object Cart {
         left.map(l => if (l.isTree) l.mean else matMean(spVal)).getOrElse(matMean(spVal))) / 2.0
     }
 
-    def prune(testData: DataSet): TreeNode[Mat] = {
-      if (testData.length == 0) ModelTree(-1, wrapDouble(mean))
-      else {
-        val curTree = if (right.exists(_.isTree) || left.exists(_.isTree)) {
-          val (lSet, rSet) = testData.binSplitDataSet(spInd, doubleValue)
-          val maybeLeft = left.filter(_.isTree).map(_.prune(lSet)).orElse(left)
-          val maybeRight = right.filter(_.isTree).map(_.prune(rSet)).orElse(right)
-          copy(left = maybeLeft, right = maybeRight)
-        } else this
-
-        if (curTree.right.exists(_.isLeaf) && curTree.left.exists(_.isLeaf)) {
-          val (lSet, rSet) = testData.binSplitDataSet(curTree.spInd, curTree.doubleValue)
-          val errorNoMerge = square(lSet.labelMat - curTree.leftValue).sum + square(rSet.labelMat - curTree.rightValue).sum
-          val treeMean = (curTree.leftValue + curTree.rightValue) / 2.0
-          val errorMerge = square(testData.labelMat - treeMean).sum
-          if (errorMerge < errorNoMerge) {
-            println("merging")
-            ModelTree(-1, treeMean)
-          } else curTree
-        } else curTree
-      }
-    }
-
+    def prune(testData: DataSet): TreeNode[Mat] = throw new UnsupportedOperationException("ModelTree has not yet supported.")
   }
 
   case class Row(data: Array[Double])
@@ -129,7 +108,7 @@ object Cart {
 
     lazy val labelMat: DenseMatrix[Double] = DenseMatrix(rows.map(_.data.last))
 
-    lazy val dataMat: DenseMatrix[Double] = DenseMatrix(rows.map(x => x.data.slice(1, rows.length - 1)): _*)
+    lazy val dataMat: DenseMatrix[Double] = DenseMatrix(rows.map(x => x.data.slice(0, colSize - 1)): _*)
 
     def foldPredictors[R](z: R)(op: (R, Double, Int) => R): R = rows.map(_.data.slice(0, colSize - 1)).foldLeft(z) { (outer, elem) =>
       elem.zipWithIndex.foldLeft(outer) { case (inner, (value, colIdx)) => op(inner, value, colIdx) }
@@ -147,7 +126,6 @@ object Cart {
 
     def createTree[T](ops: Array[Double])(implicit op: TreeOps[T] with TreeBuilder[T]): TreeNode[T] = {
       val (feat, value) = chooseBestSplit(ops)
-      println(s"feat:$feat, value:$value")
       feat.map { idx =>
         val (lSet, rSet) = binSplitDataSet(idx, op.toDouble(value))
         op.branch(idx, value, Some(lSet.createTree(ops)), Some(rSet.createTree(ops)))
@@ -184,14 +162,12 @@ object Cart {
             if (newS < curCtx.bestS) BestSplitCtx(bestS = newS, bestIndex = featIndex, bestValue = splitVal) else curCtx
           }
         }
-        println(finalCtx)
         // if the decrease (S-bestS) is less than a threshold don't do the split
         if ((S - finalCtx.bestS) < tolS) (None, model.getLeaf(this))
         else {
           val (left2, right2) = binSplitDataSet(finalCtx.bestIndex, finalCtx.bestValue)
           if (left2.length < tolN || right2.length < tolN) (None, model.getLeaf(this))
           else {
-            println(finalCtx.bestIndex + ":" + finalCtx.bestValue)
             (Some(finalCtx.bestIndex), model.doubleToValue(finalCtx.bestValue))
           }
         }
@@ -243,7 +219,6 @@ object Cart {
     def getLeaf(dataSet: DataSet): Mat = linearSolve(dataSet)._1
 
     def calcError(dataSet: DataSet): Double = {
-      println(s"ds:${dataSet.length},${dataSet.colSize}")
       val (ws, x, y) = linearSolve(dataSet)
       val yHat = x * ws
       (y - yHat: Mat).map(x => scala.math.pow(x, 2)).sum
@@ -254,7 +229,7 @@ object Cart {
       val Y = dataSet.labelMat.t
       X(::, 1 until X.cols) := dataSet.dataMat
       val xTx = X.t * X
-      if (det(xTx) == 0)
+      if (det(xTx) == 0.0)
         throw new IllegalStateException("This matrix is singular, cannot do inverse, try increasing the second value of ops")
       val ws = inv(xTx) * (X.t * Y)
       (ws, X, Y)

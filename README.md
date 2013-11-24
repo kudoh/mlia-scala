@@ -411,8 +411,12 @@ val pruned = tree.prune(DataSet(myDatTest))
 println(pruned)
 // [feature: 0, threshold: 0.499171, left: [feature: 0, threshold: 0.729397, left: [feature: 0, threshold: 0.952833, left: [feature: 0, threshold: 0.965969, left: 92.5239915, right: [feature: 0, threshold: 0.956951, left: [feature: 0, threshold: 0.958512, left: [feature: 0, threshold: 0.960398, left: 112.386764, right: 123.559747], right: 135.837013], right: [feature: 0, threshold: 0.953902, left: 0.954711, right: 130.92648]]], ...
 
-// Model Tree(it can use non-linear data)
-// TODO
+// Model Tree(it can use non-linear data set)
+val myDat2 = loadDataSet("/cart/exp2.txt")
+val tree = DataSet(myDat2).createTree(Array(1.0, 10.0))(Model)
+println(tree)
+// [feature: 0, value: [0.285477], left: (0.0016985569360628006,11.964773944277027), right: (3.4687793552577872,1.1852174309187973)] <- leaf node value is weights
+
 
 ```
 
