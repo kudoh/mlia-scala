@@ -1,13 +1,12 @@
 package mlia.cart
 
+import breeze.numerics._
 import breeze.linalg._
 import scala.annotation.tailrec
 
 object Cart {
 
   type Mat = DenseMatrix[Double]
-
-  abstract class Threshold
 
   abstract class TreeNode[T](val spInd: Int, val spVal: T, val left: Option[TreeNode[T]] = None, val right: Option[TreeNode[T]] = None) {
 
@@ -21,6 +20,8 @@ object Cart {
 
     def mean: Double
 
+    def predict(inDat: Mat): Double
+
     def branch(left: Option[TreeNode[T]], right: Option[TreeNode[T]]): TreeNode[T]
 
     def leftValue: T = left.filter(_.isLeaf).map(_.spVal).getOrElse(throw new IllegalStateException())
@@ -31,7 +32,22 @@ object Cart {
 
     def square(m: DenseMatrix[Double]): DenseMatrix[Double] = m.map(x => scala.math.pow(x, 2))
 
-    def wrapDouble(d: Double): T
+    def treeForeCast(inData: Mat): Double = {
+
+      val descend: Option[TreeNode[T]] => Double = _.map {
+        subTree => if (subTree.isTree) subTree.treeForeCast(inData) else subTree.predict(inData)
+      }.getOrElse[Double](throw new IllegalStateException("cannot reach to leaf node"))
+
+      if (this.isLeaf) predict(inData)
+      else if (inData(this.spInd, 0) > this.doubleValue) descend(left) else descend(right)
+    }
+
+    def createForeCast(testMat: Mat): Mat = {
+      (0 until testMat.rows).foldLeft(DenseMatrix.zeros[Double](testMat.rows, 1)) { (curYHat, i) =>
+        curYHat(i, 0) = treeForeCast(testMat(i, ::))
+        curYHat
+      }
+    }
   }
 
   case class RegTree(override val spInd: Int,
@@ -39,9 +55,9 @@ object Cart {
                      override val left: Option[TreeNode[Double]] = None,
                      override val right: Option[TreeNode[Double]] = None) extends TreeNode[Double](spInd, spVal, left, right) {
 
-    def wrapDouble(d: Double): Double = d
-
     val doubleValue: Double = spVal
+
+    def predict(inDat: Mat) = doubleValue
 
     def branch(l: Option[TreeNode[Double]], r: Option[TreeNode[Double]]): TreeNode[Double] = this.copy(left = l, right = r)
 
@@ -71,7 +87,6 @@ object Cart {
         } else curTree
       }
     }
-
   }
 
   case class ModelTree(override val spInd: Int,
@@ -83,7 +98,12 @@ object Cart {
 
     val doubleValue: Double = spVal(0, 0)
 
-    def wrapDouble(d: Double): Mat = DenseMatrix(d)
+    def predict(inDat: Mat): Double = {
+      val n = inDat.cols
+      val X = DenseMatrix.ones[Double](1, n + 1)
+      X(::, 1 until n + 1) := inDat
+      (X * spVal: Mat)(0, 0)
+    }
 
     def branch(l: Option[TreeNode[Cart.Mat]], r: Option[TreeNode[Cart.Mat]]): TreeNode[Cart.Mat] = this.copy(left = l, right = r)
 
@@ -109,6 +129,8 @@ object Cart {
     lazy val labelMat: DenseMatrix[Double] = DenseMatrix(rows.map(_.data.last))
 
     lazy val dataMat: DenseMatrix[Double] = DenseMatrix(rows.map(x => x.data.slice(0, colSize - 1)): _*)
+
+    def toMat: Mat = DenseMatrix(rows.map(_.data): _*)
 
     def foldPredictors[R](z: R)(op: (R, Double, Int) => R): R = rows.map(_.data.slice(0, colSize - 1)).foldLeft(z) { (outer, elem) =>
       elem.zipWithIndex.foldLeft(outer) { case (inner, (value, colIdx)) => op(inner, value, colIdx) }
@@ -154,7 +176,7 @@ object Cart {
       else {
         // the choice of the best feature is driven by Reduction in RSS error from mean
         val S = model.calcError(this)
-        val finalCtx = foldPredictors(BestSplitCtx(Double.PositiveInfinity, -1, 0.0)) { (curCtx, splitVal, featIndex) =>
+        val finalCtx = foldPredictors(BestSplitCtx(Inf, -1, 0.0)) { (curCtx, splitVal, featIndex) =>
           val (left, right) = binSplitDataSet(featIndex, splitVal)
           if (left.length < tolN || right.length < tolN) curCtx
           else {
@@ -261,4 +283,13 @@ object Cart {
     def branch(feature: Int, splitValue: Cart.Mat, left: Option[TreeNode[Cart.Mat]], right: Option[TreeNode[Cart.Mat]]): TreeNode[Cart.Mat] = ModelTree(feature, splitValue, left, right)
   }
 
+  /**
+   * Calculate covariance value.
+   */
+  def cov(x: Mat, y: Mat): Double = ((x :- mean(x): Mat) :* (y :- mean(y): Mat): Mat).sum / (x.rows - 1)
+
+  /**
+   * Calculate Pearson correlation coefficient.
+   */
+  def cor(x: Mat, y: Mat): Double = cov(x, y) / (stddev(x) * stddev(y))
 }

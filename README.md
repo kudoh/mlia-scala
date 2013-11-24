@@ -417,6 +417,29 @@ val tree = DataSet(myDat2).createTree(Array(1.0, 10.0))(Model)
 println(tree)
 // [feature: 0, value: [0.285477], left: (0.0016985569360628006,11.964773944277027), right: (3.4687793552577872,1.1852174309187973)] <- leaf node value is weights
 
+// Let's try to compare performance of various alogorithm!
+// using Regression tree
+val trainDs = DataSet(loadDataSet("/cart/bikeSpeedVsIq_train.txt"))
+val testDs = DataSet(loadDataSet("/cart/bikeSpeedVsIq_test.txt"))
+val myTree = trainDs.createTree(Array(1.0, 20.0))(Regression)
+val yHat = myTree.createForeCast(testDs.dataMat)
+println(cor(yHat, testDs.labelMat.t))
+// 0.9640852318222137 => not bad!
+
+// using Model tree
+val myTree2 = trainDs.createTree(Array(1.0, 20.0))(Model)
+val yHat2 = myTree2.createForeCast(testDs.dataMat)
+println(cor(yHat2, testDs.labelMat.t))
+// 0.9760412191380616 => great! it's better than regression tree
+
+// using Regular Regression(not using tree-based algorithm)
+val (ws, _, _) = Model.linearSolve(trainDs)
+val yHat3 = (0 until testDs.length).foldLeft(DenseMatrix.zeros[Double](testDs.length, 1)) {(curYHat, i) =>
+  curYHat(i, 0) = testDs.row(i).data(0) * ws(1, 0) + ws(0, 0)
+  curYHat
+}
+println(cor(yHat3, testDs.labelMat.t))
+// 0.9434684235674751 => it's lowest performance among the others.
 
 ```
 
