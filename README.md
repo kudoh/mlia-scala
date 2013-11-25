@@ -461,6 +461,19 @@ println(centroids)
 // 0.5992151107783439   -1.4011161029670691  
 // 3.3725020686710225   3.7899126854381118 
 
+val state = kMeans(dataMat,4)
+// centroid moved. calculate distance between each point and centroid...
+// centroid moved. calculate distance between each point and centroid...
+// centroid does not moved anymore.
+
+println(state)
+// centroid:
+// 3.565417066666667   -0.24228866666666668  
+// 1.5970113124999998  3.6761776250000002    
+// -3.494094333333333  -1.288526777777778    
+// 0.3190024090909091  -0.7295542272727272
+// dataPoints:[clusterIndex: 1, error: 0.5980], [clusterIndex: 2, error: 22.5739], [clusterIndex: 0, error: 7.9713], [clusterIndex: 2, error: 6.4407], [clusterIndex: 1, error: 4.2679], [clusterIndex: 2, error: 8.1605], [clusterIndex: 3, error: 8.2122], [clusterIndex: 2, error: 0.3377], [clusterIndex: 0, error: 0.4678], [clusterIndex: 2, error: 20.7702], [clusterIndex: 3, error: 24.7274], [clusterIndex: 2, error: 4.4330], [clusterIndex: 0, error: 4.5806], [clusterIndex: 3, error: 15.2321], [clusterIndex: 3, error: 1.3293], [clusterIndex: 3, error: 11.4530], [clusterIndex: 0...
+
 ```
 
 ## See also
