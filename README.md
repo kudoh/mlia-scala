@@ -461,7 +461,8 @@ println(centroids)
 // 0.5992151107783439   -1.4011161029670691  
 // 3.3725020686710225   3.7899126854381118 
 
-val state = kMeans(dataMat,4)
+// standard k-means clustering
+val state = KMeans(dataMat,4)
 // centroid moved. calculate distance between each point and centroid...
 // centroid moved. calculate distance between each point and centroid...
 // centroid does not moved anymore.
@@ -473,6 +474,29 @@ println(state)
 // -3.494094333333333  -1.288526777777778    
 // 0.3190024090909091  -0.7295542272727272
 // dataPoints:[clusterIndex: 1, error: 0.5980], [clusterIndex: 2, error: 22.5739], [clusterIndex: 0, error: 7.9713], [clusterIndex: 2, error: 6.4407], [clusterIndex: 1, error: 4.2679], [clusterIndex: 2, error: 8.1605], [clusterIndex: 3, error: 8.2122], [clusterIndex: 2, error: 0.3377], [clusterIndex: 0, error: 0.4678], [clusterIndex: 2, error: 20.7702], [clusterIndex: 3, error: 24.7274], [clusterIndex: 2, error: 4.4330], [clusterIndex: 0, error: 4.5806], [clusterIndex: 3, error: 15.2321], [clusterIndex: 3, error: 1.3293], [clusterIndex: 3, error: 11.4530], [clusterIndex: 0...
+
+// Bisecting k-means clustering
+val ds2 = loadDataSet("/kmeans/testSet2.txt")
+val dataMat2 = DenseMatrix(ds2: _*)
+
+val state = BisectingKMeans(dataMat2, 3)
+// centroid moved. calculate distance between each point and centroid...
+// centroid moved. calculate distance between each point and centroid...
+// centroid does not moved anymore.
+// sseSplit: 595.62010, sseNotSplit: 0.00000
+// the bestCentToSplit is: 0
+// the len of bestClustAss is: 60
+// centroid moved. calculate distance between each point and centroid...
+// centroid does not moved anymore.
+// sseSplit: 28.67047, sseNotSplit: 558.01290
+// ...
+println(state)
+// centroid:
+//  -3.067790947368421    3.337698842105263    
+// 2.7627517142857143    3.1270400476190474   
+// -0.45965614999999993  -2.7782156000000002  
+// dataPoints:[clusterIndex: 1, error: 0.2913], [clusterIndex: 0, error: 0.5255], [clusterIndex: 2, error: 1.0218], [clusterIndex: 1, error: 1.0053], [clusterIndex: 0, error: 2.8054], [clusterIndex: 2, error: 3.8717], [clusterIndex: 1, error: 0.7818], [clusterIndex: 0, error: 0.4133], [clusterIndex: 2, error: 3.5381], [clusterIndex: 1, error: 7.2974], [clusterIndex: 1, error: 11.7120], [clusterIndex: 2, error: 0.0257], [clusterIndex: 1, error: 0.8888], [clusterIndex: 0, error: 0.5763], [clusterIndex: 2, error: 2.1173], [clusterIndex: 1, error: 1.7608], [clusterIndex: 0, error: 3.9604], [clusterI...
+
 
 ```
 
