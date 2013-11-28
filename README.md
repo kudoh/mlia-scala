@@ -496,7 +496,23 @@ println(state)
 // 2.7627517142857143    3.1270400476190474   
 // -0.45965614999999993  -2.7782156000000002  
 // dataPoints:[clusterIndex: 1, error: 0.2913], [clusterIndex: 0, error: 0.5255], [clusterIndex: 2, error: 1.0218], [clusterIndex: 1, error: 1.0053], [clusterIndex: 0, error: 2.8054], [clusterIndex: 2, error: 3.8717], [clusterIndex: 1, error: 0.7818], [clusterIndex: 0, error: 0.4133], [clusterIndex: 2, error: 3.5381], [clusterIndex: 1, error: 7.2974], [clusterIndex: 1, error: 11.7120], [clusterIndex: 2, error: 0.0257], [clusterIndex: 1, error: 0.8888], [clusterIndex: 0, error: 0.5763], [clusterIndex: 2, error: 2.1173], [clusterIndex: 1, error: 1.7608], [clusterIndex: 0, error: 3.9604], [clusterI...
+```
+## Chapter11 : Association analysis(Apriori algorithm)
+```scala
+import mlia.apriori.Prep._
+import mlia.apriori.Apriori._
 
+val ds = loadDataSet()
+val C1 = createC1(ds)
+val D = ds.map(x => Set.apply(x: _*))
+
+val (l1, suppData0) =scanD(D, C1, 0.5)
+println(l1.mkString(","))
+// 3,2,1,5
+println(suppData0)
+// Map(5 -> 0.75, 1 -> 0.5, 2 -> 0.75, 3 -> 0.75, 4 -> 0.25)
+
+// TODO
 
 ```
 
