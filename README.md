@@ -504,13 +504,30 @@ import mlia.apriori.Apriori._
 
 val ds = loadDataSet()
 val C1 = createC1(ds)
-val D = ds.map(x => Set.apply(x: _*))
+// Array(Items[1], Items[3], Items[4], Items[2], Items[5])
 
-val (l1, suppData0) =scanD(D, C1, 0.5)
+val (l1, suppData0) =scanD(ds, C1, 0.5)
 println(l1.mkString(","))
-// 3,2,1,5
-println(suppData0)
-// Map(5 -> 0.75, 1 -> 0.5, 2 -> 0.75, 3 -> 0.75, 4 -> 0.25)
+// Array(Items[1], Items[3], Items[5], Items[2])
+
+val (l, suppData) = apriori(ds)
+println(l(0).mkString(","))
+// Items[1],Items[3],Items[5],Items[2] <- item[4] doesn't meet our minimum supports.
+println(l(1).mkString(","))
+// Items[2, 5],Items[5, 3],Items[2, 3],Items[3, 1]
+println(l(2).mkString(","))
+// Items[2, 3, 5]
+
+println(suppData)
+// all item combination support values
+// Supports:
+// Items[3, 1] -> 0.5
+// Items[2] -> 0.75
+// ...
+// Items[2, 3, 5] -> 0.5
+// Items[5, 3] -> 0.5
+// Items[1] -> 0.5
+// Items[2, 5] -> 0.75
 
 // TODO
 
