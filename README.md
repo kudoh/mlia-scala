@@ -510,9 +510,10 @@ val (l1, suppData0) =scanD(ds, C1, 0.5)
 println(l1.mkString(","))
 // Array(Items[1], Items[3], Items[5], Items[2])
 
+// finding frequent item sets
 val (l, suppData) = apriori(ds)
 println(l(0).mkString(","))
-// Items[1],Items[3],Items[5],Items[2] <- item[4] doesn't meet our minimum supports.
+// Items[1],Items[3],Items[5],Items[2] <- item[4] doesn't meet our minimum supports
 println(l(1).mkString(","))
 // Items[2, 5],Items[5, 3],Items[2, 3],Items[3, 1]
 println(l(2).mkString(","))
@@ -529,8 +530,23 @@ println(suppData)
 // Items[1] -> 0.5
 // Items[2, 5] -> 0.75
 
-// TODO
-
+// mining association rules from frequent item sets
+val rules = generateRules(l, suppData, 0.5)
+println(rules.mkString("\n"))
+// [5] ---> [2] : confidence:1.0
+// [2] ---> [5] : confidence:1.0
+// [3] ---> [5] : confidence:0.6666666666666666
+// [5] ---> [3] : confidence:0.6666666666666666
+// [3] ---> [2] : confidence:0.6666666666666666
+// [2] ---> [3] : confidence:0.6666666666666666
+// [1] ---> [3] : confidence:1.0
+// [3] ---> [1] : confidence:0.6666666666666666
+// [5] ---> [3,2] : confidence:0.6666666666666666
+// [3] ---> [5,2] : confidence:0.6666666666666666
+// [2] ---> [5,3] : confidence:0.6666666666666666
+// [5] ---> [3,2] : confidence:0.6666666666666666
+// [3] ---> [5,2] : confidence:0.6666666666666666
+// [2] ---> [5,3] : confidence:0.6666666666666666
 ```
 
 ## See also

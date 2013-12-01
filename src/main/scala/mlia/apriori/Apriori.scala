@@ -46,13 +46,53 @@ object Apriori {
     loop(Array(l1), supportData)
   }
 
+  def generateRules(ls: Array[Array[ItemSet]], supportData: Supports, minConf: Double = 0.7): Array[Rule] = {
+    // only get the sets with two or more items
+    ls.drop(1).flatMap { case items =>
+      items.flatMap { freqSet =>
+        if (freqSet.size <= 2) calcConf(freqSet, freqSet.toH1, supportData, minConf)
+        else rulesFromConseq(freqSet, freqSet.toH1, supportData, minConf)
+      }
+    }
+  }
+
+  def calcConf(freqSet: ItemSet,
+               H: Array[ItemSet],
+               supportData: Supports,
+               minConf: Double): Array[Rule] = {
+
+    H.map { conseq =>
+      (conseq, supportData(freqSet) / supportData(freqSet -- conseq))
+    }.filter(_._2 >= minConf).map { case (conseq, conf) =>
+      Rule(freqSet -- conseq, conseq, conf)
+    }
+  }
+
+  def rulesFromConseq(freqSet: ItemSet,
+                      H: Array[ItemSet],
+                      supportData: Supports,
+                      minConf: Double,
+                      state: Array[Rule] = Array.empty): Array[Rule] = {
+    val m = H(0).size
+    if (freqSet.size <= m + 1) state
+    else {
+      val Hmp1 = state ++ calcConf(freqSet, aprioriGen(H, m + 1), supportData, minConf)
+      val prunedH = Hmp1.map(_.rightSide)
+      if (prunedH.size > 1) {
+        Hmp1 ++ rulesFromConseq(freqSet, prunedH, supportData, minConf, Hmp1)
+      } else Hmp1
+    }
+  }
+
   case class Supports(map: Map[ItemSet, Double] = Map.empty[ItemSet, Double]) {
 
     override def toString = s"Supports:\n${map.mkString("\n")}"
 
     def +(kv: (ItemSet, Double)): Supports = new Supports(map + kv)
 
-    def ++(supp: Supports) = new Supports(map ++ supp.map)
+    def ++(supp: Supports): Supports = new Supports(map ++ supp.map)
+
+    def apply(set: ItemSet): Double = map(set)
   }
 
   object Supports {
@@ -62,6 +102,8 @@ object Apriori {
   case class ItemSet(x: Set[Int]) extends Set[Int] {
 
     override def toString() = s"Items[${x.mkString(", ")}]"
+
+    def toH1: Array[ItemSet] = x.map(i => ItemSet(i)).toArray
 
     def contains(elem: Int): Boolean = x.contains(elem)
 
@@ -73,9 +115,15 @@ object Apriori {
   }
 
   object ItemSet {
-    def apply(x1: Int) = new ItemSet(Set(x1))
+    def apply(x1: Int): ItemSet = new ItemSet(Set(x1))
 
-    def apply(arr: Array[Int]) = new ItemSet(arr.toSet)
+    def apply(arr: Array[Int]): ItemSet = new ItemSet(arr.toSet)
+
+    implicit def set2ItemSet(x: Set[Int]): ItemSet = new ItemSet(x)
+  }
+
+  case class Rule(leftSide: ItemSet, rightSide: ItemSet, confidence: Double) {
+    override def toString = f"[${leftSide.mkString(",")}] ---> [${rightSide.mkString(",")}] : confidence:$confidence"
   }
 
   implicit def array2ItemSet(ds: Array[Array[Int]]): Array[ItemSet] = ds.map(ItemSet.apply)
