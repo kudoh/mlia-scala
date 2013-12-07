@@ -549,5 +549,35 @@ println(rules.mkString("\n"))
 // [2] ---> [5,3] : confidence:0.6666666666666666
 ```
 
+## Chapter12 : FP-growth
+```scala
+import mlia.fpgrowth.Prep._
+import mlia.fpgrowth.FPGrowth._
+
+val simpDat = loadSimpDat
+val initSet = createInitSet(simpDat)
+val (myFPTree, myHeaderTab) = createTree(initSet, 3)
+
+myFPTree.foreach(println)
+// [[Null Set:1]
+//   [z:5]
+//     [x:3]
+//       [s:2]
+//         [y:2]
+//           [t:2]
+//  
+//       [y:1]
+//         [t:1]
+//           [r:1]
+//  
+//     [r:1]
+//  
+//   [x:1]
+//     [s:1]
+//       [r:1]
+// ]
+
+```
+
 ## See also
   [Data Fun!](http://data-fun.machine-learning.cloudbees.net)
