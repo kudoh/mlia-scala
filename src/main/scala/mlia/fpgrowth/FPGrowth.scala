@@ -4,44 +4,6 @@ import scala.annotation.tailrec
 
 object FPGrowth {
 
-  case class Tree(nodes: Array[TreeNode] = Array(new TreeNode("Null Set", None, None, 1))) {
-
-    def add(parent: TreeNode, newNode: TreeNode) = {
-      nodes(nodes.indexOf(parent)).addChild(newNode)
-      Tree(nodes :+ newNode)
-    }
-
-    override def toString = s"[${nodes.head.disp(0)}]"
-  }
-
-  case class TreeNode(name: String,
-                      nodeLink: Option[TreeNode] = None,
-                      parent: Option[TreeNode] = None) {
-
-    import scala.collection.mutable
-
-    val children: mutable.Map[String, TreeNode] = mutable.Map.empty
-    var count = 0
-
-    def this(name: String,
-             nodeLink: Option[TreeNode],
-             parent: Option[TreeNode],
-             count: Int) = {
-      this(name, nodeLink, parent)
-      this.count = count
-    }
-
-    override def toString = s"[$name:$count]"
-
-    def inc() = { count += 1; this }
-
-    def disp(ind: Int): String = "  " * ind + toString + "\n" + children.map(_._2.disp(ind + 1)).mkString("\n")
-
-    def addChild(child: TreeNode) { children += (child.name -> child) }
-
-    def link(node: TreeNode) = copy(nodeLink = Some(node))
-  }
-
   /**
    * Creates FP-tree from dataset but don't mine
    */
@@ -79,29 +41,37 @@ object FPGrowth {
   /**
    * Grows FP-Tree.
    */
+  @tailrec
   def updateTree(items: List[String],
                  tree: Tree,
                  parent: TreeNode,
                  headerTable: Map[String, Header],
                  count: Int): (Tree, Map[String, Header]) = {
 
-    val (newTree, updateHeader, nextParent) = if (parent.children.contains(items.head)) {
-      (tree, headerTable, parent.children(items.head).inc())
-    } else {
-      val newNode = new TreeNode(items.head, None, Some(parent), count)
-      val newT = tree.add(parent, newNode)
+    items match {
+      case Nil => (tree, headerTable)
+      case (x :: xs) =>
 
-      val newHeader = headerTable(items.head).topLink map { link =>
-        items.head -> makeHeader(headerTable(items.head), newNode)
-      } getOrElse {
-        items.head -> (headerTable(items.head) link newNode)
-      }
-      (newT, headerTable + newHeader, newNode)
+        val (newTree, updateHeader, nextParent) =
+          if (parent.children.contains(x)) {
+            // if parent already has item, just add up.
+            (tree, headerTable, parent.children(x).inc())
+          } else {
+            // create new tree node with given count and update FP-Tree
+            val newNode = new TreeNode(x, None, Some(parent), count)
+            val newT = tree.add(parent, newNode)
+
+            // re-create header table node link
+            val newHeader = headerTable(x).topLink map { link =>
+              x -> makeHeader(headerTable(x), newNode)
+            } getOrElse {
+              x -> (headerTable(x) link newNode)
+            }
+            (newT, headerTable + newHeader, newNode)
+          }
+        // try next item
+        updateTree(xs, newTree, nextParent, updateHeader, count)
     }
-
-    if (items.size > 1) {
-      updateTree(items.tail, newTree, nextParent, updateHeader, count)
-    } else (newTree, updateHeader)
   }
 
   def makeHeader(oldHeader: Header, targetNode: TreeNode): Header = {
@@ -112,6 +82,47 @@ object FPGrowth {
         loop(state, state link x)
     }
     Header(oldHeader.count, oldHeader.topLink.map(x => loop(x, targetNode)))
+  }
+
+  case class Tree(nodes: Array[TreeNode] = Array(new TreeNode("Null Set", None, None, 1))) {
+
+    def add(parent: TreeNode, newNode: TreeNode) = {
+      nodes(nodes.indexOf(parent)).addChild(newNode)
+      Tree(nodes :+ newNode)
+    }
+
+    override def toString = s"[${nodes.head.disp(0)}]"
+  }
+
+  /**
+   * this tree node is mutable.
+   */
+  case class TreeNode(name: String,
+                      nodeLink: Option[TreeNode] = None,
+                      parent: Option[TreeNode] = None) {
+
+    import scala.collection.mutable
+
+    val children: mutable.Map[String, TreeNode] = mutable.Map.empty
+    var count = 0
+
+    def this(name: String,
+             nodeLink: Option[TreeNode],
+             parent: Option[TreeNode],
+             count: Int) = {
+      this(name, nodeLink, parent)
+      this.count = count
+    }
+
+    override def toString = s"[$name:$count]"
+
+    def inc() = { count += 1; this }
+
+    def disp(ind: Int): String = "  " * ind + toString + "\n" + children.map(_._2.disp(ind + 1)).mkString("\n")
+
+    def addChild(child: TreeNode) { children += (child.name -> child) }
+
+    def link(node: TreeNode) = copy(nodeLink = Some(node))
   }
 
   case class Header(count: Int, topLink: Option[TreeNode]) {
