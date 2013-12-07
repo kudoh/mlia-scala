@@ -62,7 +62,7 @@ object FPGrowth {
             val newT = tree.add(parent, newNode)
 
             // re-create header table node link
-            val newHeader = headerTable(x).topLink map { link =>
+            val newHeader = headerTable(x).topLink map { _ =>
               x -> makeHeader(headerTable(x), newNode)
             } getOrElse {
               x -> (headerTable(x) link newNode)
