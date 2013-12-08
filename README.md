@@ -506,7 +506,7 @@ val ds = loadDataSet()
 val C1 = createC1(ds)
 // Array(Items[1], Items[3], Items[4], Items[2], Items[5])
 
-val (l1, suppData0) =scanD(ds, C1, 0.5)
+val (l1, suppData0) = scanD(ds, C1, 0.5)
 println(l1.mkString(","))
 // Array(Items[1], Items[3], Items[5], Items[2])
 
@@ -556,6 +556,8 @@ import mlia.fpgrowth.FPGrowth._
 
 val simpDat = loadSimpDat
 val initSet = createInitSet(simpDat)
+
+// create FP-Tree
 val (myFPTree, myHeaderTab) = createTree(initSet, 3)
 
 myFPTree.foreach(println)
@@ -576,6 +578,44 @@ myFPTree.foreach(println)
 //     [s:1]
 //       [r:1]
 // ]
+
+myHeaderTab.foreach(printHeaderTable)
+// ...
+// ----------
+// item: s, count: 3
+// [s:1] -> [s:2]
+// ----------
+// item: x, count: 4
+// [x:1] -> [x:3]
+// ----------
+// ...
+// ----------
+// item: y, count: 3
+// [y:1] -> [y:2]
+// ----------
+// item: t, count: 3
+// [t:1] -> [t:2]
+// ----------
+// ...
+// ----------
+// item: r, count: 3
+// [r:1] -> [r:1] -> [r:1]
+// ----------
+// ...
+// ----------
+// item: z, count: 5
+// [z:5]
+
+// mining frequent items from FP-Tree
+myHeaderTab.foreach { table =>
+  // trace node link with header table
+  println(findPrefixPath(table("x").top))
+  // Map(Items[z] -> 3)
+  println(findPrefixPath(table("z").top))
+  // Map()
+  println(findPrefixPath(table("r").top))
+  // Map(Items[z, x, y, t] -> 1, Items[x, s] -> 1, Items[z] -> 1)  
+}
 
 ```
 
