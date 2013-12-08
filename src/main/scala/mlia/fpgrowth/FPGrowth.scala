@@ -11,25 +11,24 @@ object FPGrowth {
                  minSup: Int = 1): (Option[Tree], Option[Map[String, Header]]) = {
 
     // first pass counts frequency of occurrence
-    val headerTable = dataSet.foldLeft(Map.empty[String, Header]) { (outer, tran) =>
-      tran._1.foldLeft(outer) { (inner, item) =>
-        inner + (item -> inner.getOrElse(item, Header(0, None)).inc)
+    val headerTable = dataSet.foldLeft(Map.empty[String, Header]) { case (outer, (tran, count)) =>
+      tran.foldLeft(outer) { (inner, item) =>
+        inner + (item -> inner.getOrElse(item, Header(0, None)).countUp(count))
       }
-    }
+    }.filter(_._2.count >= minSup)
 
-    val freqItemSet = headerTable.filter(_._2.count >= minSup).keys.toSet
+    val freqItemSet = headerTable.keys.toSet
 
     if (freqItemSet.isEmpty) (None, None)
     else {
-      val (tree, updatedHeader) = dataSet.foldLeft(Tree(), headerTable) {
-        case ((curTree, table), (tranSet, count)) =>
-          val localD = tranSet.foldLeft(Map.empty[String, Int]) { case ((curLocalD), item) =>
-            if (freqItemSet.contains(item)) curLocalD + (item -> headerTable(item).count) else curLocalD
-          }
-          if (localD.nonEmpty) {
-            val orderedItems = localD.toSeq.sortWith((x1, x2) => x1._2 > x2._2).map(_._1)
-            updateTree(orderedItems.toList, curTree, curTree.nodes.head, table, count)
-          } else (curTree, table)
+      val (tree, updatedHeader) = dataSet.foldLeft(Tree(), headerTable) { case ((curTree, table), (tranSet, count)) =>
+        val localD = tranSet.foldLeft(Map.empty[String, Int]) { case ((curLocalD), item) =>
+          if (freqItemSet.contains(item)) curLocalD + (item -> headerTable(item).count) else curLocalD
+        }
+        if (localD.nonEmpty) {
+          val orderedItems = localD.toSeq.sortWith(_._2 > _._2).map(_._1)
+          updateTree(orderedItems.toList, curTree, curTree.nodes.head, table, count)
+        } else (curTree, table)
       }
       (Some(tree), Some(updatedHeader))
     }
@@ -123,6 +122,35 @@ object FPGrowth {
     }
   }
 
+  /**
+   * Creates conditional tree.
+   */
+  def mineTree(inTree: TreeNode,
+               headerTable: Map[String, Header],
+               minSup: Int,
+               prefix: Set[String] = Set.empty,
+               freqItemList: Array[ItemSet] = Array.empty): Array[ItemSet] = {
+
+    val bigL = headerTable.toSeq.sortBy(_._2.count).map(_._1)
+
+    bigL.foldLeft(freqItemList) { (state, basePat) =>
+
+      val newFreqSet: Set[String] = prefix + basePat
+      val itemSetOfCondTree = state :+ ItemSet(newFreqSet)
+
+      val result = headerTable(basePat).topLink.flatMap { link =>
+        val condPattBases: Map[ItemSet, Int] = findPrefixPath(link)
+        val (myCondTree, myHead) = createTree(condPattBases.map(x => x._1.toSet -> x._2), minSup)
+        for (tree <- myCondTree; table <- myHead) yield {
+          println(s"conditional tree for: $newFreqSet")
+          println(tree.toString)
+          mineTree(tree.nodes.head, table, minSup, newFreqSet, itemSetOfCondTree)
+        }
+      }
+      result getOrElse itemSetOfCondTree
+    }
+  }
+
   case class Tree(nodes: Array[TreeNode] = Array(new TreeNode("Null Set", None, 1))) {
 
     def add(parent: TreeNode, newNode: TreeNode) = {
@@ -167,7 +195,7 @@ object FPGrowth {
 
     def top: TreeNode = topLink.getOrElse[TreeNode](throw new IllegalStateException("top link is None."))
 
-    def inc = Header(count + 1, topLink)
+    def countUp(c: Int) = Header(count + c, topLink)
 
     def link(node: TreeNode) = Header(count, Some(node))
   }

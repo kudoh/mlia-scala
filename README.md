@@ -580,7 +580,6 @@ myFPTree.foreach(println)
 // ]
 
 myHeaderTab.foreach(printHeaderTable)
-// ...
 // ----------
 // item: s, count: 3
 // [s:1] -> [s:2]
@@ -588,20 +587,14 @@ myHeaderTab.foreach(printHeaderTable)
 // item: x, count: 4
 // [x:1] -> [x:3]
 // ----------
-// ...
-// ----------
 // item: y, count: 3
 // [y:1] -> [y:2]
 // ----------
 // item: t, count: 3
 // [t:1] -> [t:2]
 // ----------
-// ...
-// ----------
 // item: r, count: 3
 // [r:1] -> [r:1] -> [r:1]
-// ----------
-// ...
 // ----------
 // item: z, count: 5
 // [z:5]
@@ -616,6 +609,52 @@ myHeaderTab.foreach { table =>
   println(findPrefixPath(table("r").top))
   // Map(Items[z, x, y, t] -> 1, Items[x, s] -> 1, Items[z] -> 1)  
 }
+
+// create conditional FP-Tree
+val freqItem = for(tree <- myFPTree; table <- myHeaderTab) yield {
+  mineTree(tree.nodes.head, table, 3, Set.empty, Array.empty)
+  // conditional tree for: Set(s)
+  // [[Null Set:1]
+  //   [x:3]
+  // ]
+  // conditional tree for: Set(y)
+  // [[Null Set:1]
+  //   [z:3]
+  //     [x:3]
+  // ]
+  // conditional tree for: Set(y, x)
+  // [[Null Set:1]
+  //   [z:3]
+  // ]
+  // conditional tree for: Set(t)
+  // [[Null Set:1]
+  //   [z:3]
+  //     [x:3]
+  //       [y:3]
+  // ]
+  // ...
+}
+
+// finally we got frequent item set
+freqItem.foreach(x => println(x.mkString("\n")))
+// Items[s]
+// Items[s, x]
+// Items[y]
+// Items[y, z]
+// Items[y, x]
+// Items[y, x, z]
+// Items[t]
+// Items[t, z]
+// Items[t, x]
+// Items[t, x, z]
+// Items[t, y]
+// Items[t, y, z]
+// Items[t, y, x]
+// Items[t, y, x, z]
+// Items[r]
+// Items[x]
+// Items[x, z]
+// Items[z]
 
 ```
 
