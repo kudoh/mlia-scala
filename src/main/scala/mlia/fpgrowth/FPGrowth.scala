@@ -1,7 +1,6 @@
 package mlia.fpgrowth
 
 import scala.annotation.tailrec
-import java.io.Serializable
 
 object FPGrowth {
 
