@@ -1,6 +1,7 @@
 package mlia.fpgrowth
 
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 
 object FPGrowth {
 
@@ -204,6 +205,8 @@ object FPGrowth {
     def apply(x: String): ItemSet = new ItemSet(Set(x))
 
     def apply(arr: Array[String]): ItemSet = new ItemSet(arr.toSet)
+
+    def apply(x: String*): ItemSet = new ItemSet(x.toSet)
 
     implicit def set2ItemSet(x: Set[String]): ItemSet = new ItemSet(x)
   }
