@@ -3,7 +3,7 @@ package mlia.svm
 import scala.annotation.tailrec
 import breeze.linalg._
 import breeze.numerics._
-import breeze.stats.distributions.Uniform
+import breeze.stats.distributions.{Rand, RandBasis, Uniform}
 
 object FullSMOWithKernel {
 
@@ -56,7 +56,7 @@ object FullSMOWithKernel {
 
     case class JOpt(maxK: Int = dataMat.rows - 1, maxDeltaE: Double = 0.0, ej: Double = 0.0)
 
-    def selectJ(i: Int, ei: Double): (Int, Double) = {
+    def selectJ(i: Int, ei: Double)(implicit rand: RandBasis): (Int, Double) = {
       cache(i, ei)
       if (validEcacheArr.size > 1) {
         // loop through valid Ecache values and find the one that maximizes delta E
@@ -74,9 +74,9 @@ object FullSMOWithKernel {
     }
   }
 
-  def innerL(i: Int, oS: OptStruct) = {
+  def innerL(i: Int, oS: OptStruct)(implicit rand: RandBasis) = {
     val ei = oS.calcEk(i)
-//    println(s"alpha:${oS.alpha(i)}, label:${oS.label(i)}, tol:${oS.tolerance}, C:${oS.constant}, Ei:$ei")
+    //    println(s"alpha:${oS.alpha(i)}, label:${oS.label(i)}, tol:${oS.tolerance}, C:${oS.constant}, Ei:$ei")
     if (((oS.label(i) * ei < -oS.tolerance) && (oS.alpha(i) < oS.constant)) || ((oS.label(i) * ei) > oS.tolerance && oS.alpha(i) > 0)) {
       val (j, ej) = oS.selectJ(i, ei)
       val (alphaIold, alphaJold) = (oS.alpha(i), oS.alpha(j))
@@ -114,7 +114,13 @@ object FullSMOWithKernel {
     } else (0, oS)
   }
 
-  def smoP(dataMatIn: Array[Array[Double]], classLabels: Array[Double], c: Double, toler: Double, maxIter: Int, kernel: Kernel = Kernel("lin", Array())): (Mat, Double) = {
+  def smoP(dataMatIn: Array[Array[Double]],
+           classLabels: Array[Double],
+           c: Double,
+           toler: Double,
+           maxIter: Int,
+           kernel: Kernel = Kernel("lin", Array()))
+          (implicit rand: RandBasis = Rand): (Mat, Double) = {
 
     @tailrec
     def outerL(oS: OptStruct, iter: Int = 0, entireSet: Boolean = true, curAlphaPairsChanged: Int = 0): (Mat, Double) = {
@@ -191,11 +197,11 @@ object FullSMOWithKernel {
 
   // the following code is the same as SimplifiedSMO
 
-  def selectJrand(i: Int, m: Int): Int = {
-    val rand = Uniform(0, m)
+  def selectJrand(i: Int, m: Int)(implicit rand: RandBasis): Int = {
+    val random = Uniform(0, m)
     @tailrec
-    def step(i: Int, j: Int): Int = if (i != j) j else step(i, rand.sample().toInt)
-    step(i, rand.sample().toInt)
+    def step(i: Int, j: Int): Int = if (i != j) j else step(i, random.sample().toInt)
+    step(i, random.sample().toInt)
   }
 
   def clipAlpha(aj: Double, h: Double, l: Double): Double = if (aj > h) h else if (aj < l) l else aj
