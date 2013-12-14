@@ -2,7 +2,7 @@ package mlia.lr
 
 import breeze.linalg._
 import breeze.numerics._
-import breeze.stats.distributions.Uniform
+import breeze.stats.distributions.{Rand, RandBasis, Uniform}
 
 object LogisticRegression {
 
@@ -35,9 +35,9 @@ object LogisticRegression {
     }
   }
 
-  def stocGradAscent1Iter500(dataMatIn: List[Array[Double]], classLabels: Array[Int]) = stocGradAscent1(dataMatIn, classLabels, 500)
+  def stocGradAscent1Iter500(dataMatIn: List[Array[Double]], classLabels: Array[Int])(implicit rand: RandBasis = Rand) = stocGradAscent1(dataMatIn, classLabels, 500)
 
-  def stocGradAscent1(dataMatIn: List[Array[Double]], classLabels: Array[Int], numIter: Int = 150): Vec = {
+  def stocGradAscent1(dataMatIn: List[Array[Double]], classLabels: Array[Int], numIter: Int = 150)(implicit rand: RandBasis = Rand): Vec = {
 
     (0 until numIter).foldLeft(DenseVector.ones[Double](dataMatIn.head.size)) { (outerState, i) =>
       (0 until dataMatIn.size).foldLeft((outerState, (0 until dataMatIn.size).toArray)) { case ((curWeights, indices), j) =>
