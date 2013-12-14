@@ -1,6 +1,7 @@
 package mlia.apriori
 
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 
 object Apriori {
 
