@@ -3,7 +3,7 @@ package mlia.kmeans
 import scala.annotation.tailrec
 import breeze.linalg._
 import breeze.numerics._
-import breeze.stats.distributions.Uniform
+import breeze.stats.distributions.{Rand, RandBasis, Uniform}
 
 object Clustering {
 
@@ -12,7 +12,7 @@ object Clustering {
 
   implicit def distEuclid(vecA: Vec, vecB: Vec): Double = sqrt(sum((vecA - vecB) :^ 2.0: Vec))
 
-  implicit def randCent(dataSet: Mat, k: Int): Mat = {
+  implicit def randCent(dataSet: Mat, k: Int)(implicit rand: RandBasis = Rand): Mat = {
     (0 until dataSet.cols).foldLeft(DenseMatrix.zeros[Double](k, dataSet.cols)) { (centroids, j) =>
       val data: Vec = dataSet(::, j)
       val minJ = data.min
@@ -63,7 +63,7 @@ object Clustering {
         copy(clusterAssment = buf.toArray, clusterChanged = changed)
       }
 
-      def getIndices(cent: Int) = clusterAssment.zipWithIndex.filter { case (ass, i) => ass.clusterIndex == cent }.map(_._2)
+      def getIndices(cent: Int) = clusterAssment.zipWithIndex.filter { case (ass, i) => ass.clusterIndex == cent}.map(_._2)
 
       override def toString = s"centroid:\n $centroids\ndataPoints:${clusterAssment.mkString(", ")}"
     }
@@ -74,7 +74,7 @@ object Clustering {
 
   object BisectingKMeans {
 
-    def apply(dataSet: Mat, k: Int)(implicit distMeans: (Vec, Vec) => Double) = {
+    def apply(dataSet: Mat, k: Int)(implicit distMeans: (Vec, Vec) => Double, createCent: (Mat, Int) => Mat) = {
 
       val centroid0 = mean(dataSet, Axis._0)
       // calculate initial Error and update initial state
@@ -138,7 +138,7 @@ object Clustering {
       }
 
       def getIndices(cent: Int): Array[Int] =
-        clusterAssment.zipWithIndex.filter { case (ass, i) => ass.clusterIndex == cent }.map(_._2)
+        clusterAssment.zipWithIndex.filter { case (ass, i) => ass.clusterIndex == cent}.map(_._2)
 
       override def toString = s"centroid:\n $centMat\ndataPoints:${clusterAssment.mkString(", ")}"
 
@@ -155,8 +155,16 @@ object Clustering {
 
   }
 
-  class Assessment(val clusterIndex: Int, val error: Double) {
-    override def toString = f"[clusterIndex: $clusterIndex, error: $error%.4f]"
+  final class Assessment(val clusterIndex: Int, val error: Double) {
+
+    override def toString = f"[clusterIndex: $clusterIndex, error: $error]"
+
+    override def equals(other: scala.Any): Boolean = other match {
+      case that: Assessment => this.clusterIndex == that.clusterIndex && this.error == that.error
+      case _ => false
+    }
+
+    override def hashCode(): Int = 31 * clusterIndex.hashCode() + error.hashCode()
   }
 
   object Assessment {
