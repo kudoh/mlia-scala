@@ -105,7 +105,7 @@ object Regression {
   /**
    * Forward stagewise regression.
    */
-  def stageWise(xArr: Array[Array[Double]], yArr: Array[Double], eps: Double = 0.01, numIt: Int = 100) = {
+  def stageWise(xArr: Array[Array[Double]], yArr: Array[Double], eps: Double = 0.01, numIt: Int = 100): Mat = {
     val xMat = DenseMatrix(xArr: _*)
     val yMat = DenseMatrix(yArr).t
     val yMean = mean(yMat)
