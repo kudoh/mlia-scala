@@ -336,7 +336,7 @@ println(ws2)
 
 val yHat = lwlrTest(xArr, xArr, yArr, 0.003)
 println(yHat)
-DenseVector(3.1220447140568712, 3.732843357024315, 4.696920329650367...)
+// DenseVector(3.1220447140568712, 3.732843357024315, 4.696920329650367...)
 
 // for now, we use real world data
 val (abX, abY) = loadDataSet("/regression/abalone.txt")
